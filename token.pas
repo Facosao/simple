@@ -38,3 +38,36 @@ const
     GOTO_ = 65;
     IF_ = 66;
     END_ = 67;
+
+type
+    TokenType = record
+        tokenId: integer;
+        value: integer;
+        line: integer;
+        column: integer;
+    end;
+
+function newToken(
+    tokenId: integer;
+    value: integer;
+    line: integer;
+    column: integer
+    ): TokenType;
+
+implementation
+
+function newToken(
+    tokenId: integer;
+    value: integer;
+    line: integer;
+    column: integer
+    ): TokenType;
+
+begin
+    newToken.tokenId := tokenId;
+    newToken.value := value;
+    newToken.line := line;
+    newToken.column := column;
+end;
+
+end.

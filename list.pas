@@ -16,16 +16,17 @@ type
     PList = ^TList;
 
 function init(): TList;
+procedure append(list: PList; element: integer);
 
 implementation
 
 function init(): TList;
 begin   
-    new.head := nil;
-    new.tail := nil;
+    init.head := nil;
+    init.tail := nil;
 end;
 
-procedure append(list: PList, element: integer);
+procedure append(list: PList; element: integer);
 
 var
     newNode: ^TNode;
