@@ -5,7 +5,6 @@ uses
 
 var
     sourceFile: text;
-    c: char;
 
 begin
     if paramCount() <> 1 then

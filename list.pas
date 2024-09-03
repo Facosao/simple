@@ -32,6 +32,7 @@ var
     newNode: ^TNode;
 
 begin
+    writeLn('--- insert: ', element, '---');
     newNode := GetMem(sizeof(TNode));
 
     newNode^.item := element;

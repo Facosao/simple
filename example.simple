@@ -1,3 +1,4 @@
+1  rem teste
 10 input b
 15 input e
 20 if b < 0 goto 65
@@ -12,3 +13,5 @@
 65 let f = -1
 70 print f
 75 end
+174 rem teste2
+8001 rem teste3
