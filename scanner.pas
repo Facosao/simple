@@ -25,7 +25,7 @@ procedure lineFeed();
 begin
     list.append(@tokens, token.LF);
     line += 1;
-    column := 1;
+    column := 0;
 end;
 
 function scanTokens(var source: text): TList;
@@ -41,6 +41,7 @@ begin
     while true do
     begin
         read(source, c);
+        column += 1;
         writeLn('c = ', c);
         case c of
             '+':
@@ -57,6 +58,12 @@ begin
 
             '%':
                 list.append(@tokens, token.MODULO);
+
+            '!':
+            begin
+                previous := '!';
+                continue;
+            end;
             
             '<':
             begin
@@ -142,10 +149,10 @@ begin
                 break;
 
             else
-                writeLn('Unexpected character ', ord(c), ' at position (', line, ', ', column, ').');
+                writeLn('Unexpected character ', ord(c),
+                        ' at position (', line, ', ', column, ').');
         end;
 
-        column += 1;
         previous := #0;
     end; 
 
@@ -252,7 +259,8 @@ begin
             identifier := token.END_;
         else
             if bufPtr > 2 then
-                writeLn('Unexpected identifier ', buffer, ' at (', line, ', ', column, ')');
+                writeLn('Unexpected identifier ', buffer,
+                        ' at (', line, ', ', column, ')');
             
             c^ := buffer[1];
             identifier := -1;

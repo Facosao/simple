@@ -1,0 +1,34 @@
+{
+    "STATEMENT": ["NUMBER", "RESERVED WORD"],
+
+    "RESERVED WORD": [
+        "REM",
+        "INPUT",
+        "LET",
+        "PRINT",
+        "GOTO",
+        "IF",
+        "END"
+    ],
+
+    "REM": ["DISCARD", "lf"],
+    "DISCARD": [["*", "DISCARD"], "$"],
+
+    "INPUT": ["input", "ID"],
+    "LET": ["let", "ID", "=", "ALGEBRA EXPR"],
+    "PRINT": ["print", "ID"],
+    "GOTO": ["goto", "NUMBER"],
+    "IF": ["if", "BOOLEAN EXPR", "GOTO"],
+    "END": "end",
+
+    "ID": ["a", "b", "...", "y", "z"],
+    "NUMBER": ["-9999", "...", "9999"],
+    
+    "OPERAND": ["NUMBER", "ID"],
+
+    "ALGEBRA EXPR": ["OPERAND", "ALGEBRA OPERATOR", "OPERAND"],
+    "ALGEBRA OPERATOR": ["+", "-", "*", "/", "%"],
+
+    "BOOLEAN EXPR": ["OPERAND", "BOOLEAN OPERATOR", "OPERAND"],
+    "BOOLEAN OPERATOR": ["==", "!=", "<", ">", "<=", ">="]
+}
