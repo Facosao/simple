@@ -23,7 +23,7 @@ var
 
 procedure lineFeed();
 begin
-    list.append(@tokens, token.LF);
+    list.append(@tokens, token.newToken(token.LF, 0, line, column));
     line += 1;
     column := 0;
 end;
@@ -45,19 +45,44 @@ begin
         writeLn('c = ', c);
         case c of
             '+':
-                list.append(@tokens, token.PLUS);
+                list.append(@tokens, token.newToken(
+                    token.PLUS,
+                    0,
+                    line,
+                    column
+                ));
 
             '-':
-                list.append(@tokens, token.MINUS);
+                list.append(@tokens, token.newToken(
+                    token.MINUS,
+                    0,
+                    line,
+                    column
+                ));
 
             '*':
-                list.append(@tokens, token.PRODUCT);
+                list.append(@tokens, token.newToken(
+                    token.PRODUCT,
+                    0,
+                    line,
+                    column
+                ));
 
             '/':
-                list.append(@tokens, token.DIVISION);
+                list.append(@tokens, token.newToken(
+                    token.DIVISION,
+                    0,
+                    line,
+                    column
+                ));
 
             '%':
-                list.append(@tokens, token.MODULO);
+                list.append(@tokens, token.newToken(
+                    token.MODULO,
+                    0,
+                    line,
+                    column
+                ));
 
             '!':
             begin
@@ -86,36 +111,76 @@ begin
                     end;
 
                     '=':
-                        list.append(@tokens, token.EQUAL_EQUAL);
+                        list.append(@tokens, token.newToken(
+                            token.EQUAL_EQUAL,
+                            0,
+                            line,
+                            column
+                        ));
 
                     '!':
-                        list.append(@tokens, token.BANG_EQUAL);
+                        list.append(@tokens, token.newToken(
+                            token.BANG_EQUAL,
+                            0,
+                            line,
+                            column
+                        ));
 
                     '>':
-                        list.append(@tokens, token.GREATER_EQUAL);
+                        list.append(@tokens, token.newToken(
+                            token.GREATER_EQUAL,
+                            0,
+                            line,
+                            column
+                        ));
 
                     '<':
-                        list.append(@tokens, token.LESS_EQUAL);
+                        list.append(@tokens, token.newToken(
+                            token.LESS_EQUAL,
+                            0,
+                            line,
+                            column
+                        ));
 
                     ' ':
-                        list.append(@tokens, token.EQUAL);
+                        list.append(@tokens, token.newToken(
+                            token.EQUAL,
+                            0,
+                            line,
+                            column
+                        ));
                 end;
 
             ' ':
             begin
                 case previous of
                     '<':
-                        list.append(@tokens, token.LESS);
+                        list.append(@tokens, token.newToken(
+                            token.LESS,
+                            0,
+                            line,
+                            column
+                        ));
 
                     '>':
-                        list.append(@tokens, token.GREATER);
+                        list.append(@tokens, token.newToken(
+                            token.GREATER,
+                            0,
+                            line,
+                            column
+                        ));
                 end;
             end;
 
             '0'..'9':
             begin
                 return := number(source, @c);
-                list.append(@tokens, token.CONSTANT);
+                list.append(@tokens, token.newToken(
+                    token.CONSTANT,
+                    return,
+                    line,
+                    column
+                ));
             end;
 
             'a'..'z':
@@ -123,11 +188,21 @@ begin
                 return := identifier(source, @c);
 
                 if return = -1 then
-                    list.append(@tokens, token.ID)
+                    list.append(@tokens, token.newToken(
+                        token.ID,
+                        ord(return),
+                        line,
+                        column
+                    ))
                 else
                     if return = token.REM then
                     begin
-                        list.append(@tokens, token.REM);
+                        list.append(@tokens, token.newToken(
+                            token.REM,
+                            0,
+                            line,
+                            column
+                        ));
                         
                         while c <> #10 do
                             read(source, c);
@@ -136,7 +211,12 @@ begin
                         continue;
                     end
                     else
-                        list.append(@tokens, return);
+                        list.append(@tokens, token.newToken(
+                            return,
+                            0,
+                            line,
+                            column
+                        ));
             end;
 
             #10: // LF

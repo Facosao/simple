@@ -2,9 +2,11 @@ unit list;
 
 interface
 
+uses token;
+
 type
     TNode = record
-        item: integer;
+        token: TokenType;
         next: ^TNode;
     end;
 
@@ -16,7 +18,7 @@ type
     PList = ^TList;
 
 function init(): TList;
-procedure append(list: PList; element: integer);
+procedure append(list: PList; token: TokenType);
 
 implementation
 
@@ -26,16 +28,16 @@ begin
     init.tail := nil;
 end;
 
-procedure append(list: PList; element: integer);
+procedure append(list: PList; token: TokenType);
 
 var
     newNode: ^TNode;
 
 begin
-    writeLn('--- insert: ', element, '---');
+    writeLn('--- insert: ', token.tokenId, '---');
     newNode := GetMem(sizeof(TNode));
 
-    newNode^.item := element;
+    newNode^.token := token;
     newNode^.next := nil;
 
     if list^.head = nil then

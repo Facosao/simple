@@ -40,19 +40,18 @@ const
     END_ = 67;
 
 type
-    TokenType = record
+    TToken = record
         tokenId: integer;
         value: integer;
         line: integer;
         column: integer;
     end;
 
-function newToken(
-    tokenId: integer;
-    value: integer;
-    line: integer;
-    column: integer
-    ): TokenType;
+    TTokenList = record
+
+    end;
+
+function newToken(tokenId: integer; value: integer; line: integer; column: integer): TToken;
 
 implementation
 
@@ -61,7 +60,7 @@ function newToken(
     value: integer;
     line: integer;
     column: integer
-    ): TokenType;
+    ): TToken;
 
 begin
     newToken.tokenId := tokenId;

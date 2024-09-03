@@ -1,10 +1,14 @@
 program simple(input);
 
 uses
-    scanner;
+    scanner,
+    token,
+    list;
+    //parser;
 
 var
     sourceFile: text;
+    tokens: TList;
 
 begin
     if paramCount() <> 1 then
@@ -27,8 +31,9 @@ begin
         //    writeLn('c = ', c);
         //end;
 
-        scanner.scanTokens(sourceFile);
-
+        tokens := scanner.scanTokens(sourceFile);
         close(sourceFile);
+
+        
     end;
 end.
