@@ -9,6 +9,7 @@ uses
 var
     sourceFile: text;
     tokens: TTokenList;
+    stmts: TStatementList;
 
 begin
     if paramCount() <> 1 then
@@ -32,7 +33,7 @@ begin
         //end;
 
         tokens := scanner.scanTokens(sourceFile);
-        parser.parse(tokens);
+        stmts := parser.parse(tokens);
 
         close(sourceFile);
     end;

@@ -6,22 +6,13 @@ const
     DEFAULT_CAPACITY = 2;
 
 type
-    TReservedWords = (
-        rem,
-        input,
-        let,
-        print,
-        goto_,
-        if_,
-        end_
-    );
-
-    TPossibleOperands = (constant, id);
+    TPossibleOperands = (constant, id, error);
 
     TOperand = record
         case operand: TPossibleOperands of
             constant: (n: integer);
             id: (c: char);
+            error: ();
     end;
 
     TAlgebraOperator = (
@@ -29,7 +20,8 @@ type
         minus,
         product,
         division,
-        modulo
+        modulo,
+        error
     );
 
     TAlgebraExpr = record
@@ -44,7 +36,8 @@ type
         less,
         greater,
         lessEqual,
-        greaterEqual
+        greaterEqual,
+        error
     );
 
     TBooleanExpr = record
@@ -53,16 +46,42 @@ type
         rightOperand: TOperand;
     end;
 
-    TStatement = record
-        lineNumber: integer;
-        case reservedWord: TReservedWords of
+    TPossibleWords = (
+        rem,
+        input,
+        let,
+        print,
+        goto_,
+        if_,
+        end_,
+        error
+    );
+
+    TLetTuple = record
+        id: char;
+        algebraExpr: TAlgebraExpr;
+    end;
+
+    TIfTuple = record
+        booleanExpr: TBooleanExpr;
+        gotoConstant: integer;
+    end;
+
+    TReservedWord = record
+        case thisWord: TPossibleWords of
             rem: ();
             input: (inputId: char);
-            let: (letId: char; algebraExpr: TAlgebraExpr);
+            let: (letTuple: TLetTuple);
             print: (printId: char);
             goto_: (gotoConstant: integer);
-            if_: (booleanExpr: TBooleanExpr; ifConstant: integer);
+            if_: (ifTuple: TIfTuple);
             end_: ();
+            error: ();
+    end;
+
+    TStatement = record
+        lineNumber: integer;
+        reservedWord: TReservedWord;
     end;
 
     TStatementList = record
@@ -71,13 +90,13 @@ type
         capacity: integer;
     end;
 
-function init(): TStatementList;
+function newList(): TStatementList;
 procedure append(var list: TStatementList; stmt: TStatement);
 procedure pop(var list: TStatementList);
 
 implementation
 
-function init(): TStatementList;
+function newList(): TStatementList;
 
 var
     newList: TStatementList;

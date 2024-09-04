@@ -34,7 +34,7 @@ var
     c, previous: char;
 
 begin
-    tokens := token.init();
+    tokens := token.newList();
     previous := #0;
 
     while true do
@@ -235,6 +235,7 @@ begin
         previous := #0;
     end; 
 
+    token.append(tokens, token.newToken(token.FINAL_TOKEN, 0, line, column));
     scanTokens := tokens;
 end;
 

@@ -17,7 +17,6 @@ const
     // One or two character tokens
     EQUAL = 11;
     EQUAL_EQUAL = 31;
-    BANG = 30;
     BANG_EQUAL = 32;
     GREATER = 33;
     LESS = 34;
@@ -39,6 +38,10 @@ const
     IF_ = 66;
     END_ = 67;
 
+    // Special control tokens
+    ERROR = 99;
+    FINAL_TOKEN = 100;
+
     DEFAULT_CAPACITY = 8;
 
 type
@@ -55,21 +58,21 @@ type
         capacity: integer;
     end;
 
-function newToken(tokenId: integer; value: integer; line: integer; column: integer): TToken;
-function init(): TTokenList;
+function newToken(id: integer; value: integer; line: integer; column: integer): TToken;
+function newList(): TTokenList;
 procedure append(var list: TTokenList; token: TToken);
 
 implementation
 
-function newToken(tokenId: integer; value: integer; line: integer; column: integer): TToken;
+function newToken(id: integer; value: integer; line: integer; column: integer): TToken;
 begin
-    newToken.tokenId := tokenId;
+    newToken.id := id;
     newToken.value := value;
     newToken.line := line;
     newToken.column := column;
 end;
 
-function init(): TTokenList;
+function newList(): TTokenList;
 
 var
     newList: TTokenList;
@@ -100,6 +103,44 @@ procedure pop(var list: TTokenList);
 begin
     if list.count > 0 then
         list.count -= 1;
+end;
+
+function idToStr(id: integer): string;
+begin
+    case id of
+        LF:
+            idToStr := 'LINE FEED';
+        EOF:
+            idToStr := 'END OF FILE';
+        PLUS, MINUS, PRODUCT, DIVISION, MODULO:
+            idToStr := 'ALGEBRA OPERATOR';
+        EQUAL:
+            idToStr := 'ASSIGNMENT';
+        EQUAL_EQUAL, BANG_EQUAL, GREATER, LESS, GREATER_EQUAL, LESS_EQUAL:
+            idToStr := 'BOOLEAN OPERATOR';
+        ID:
+            idToStr := 'IDENTIFIER';
+        CONSTANT:
+            idToStr := 'CONSTANT';
+        REM:
+            idToStr := 'REM';
+        INPUT:
+            idToStr := 'INPUT';
+        LET:
+            idToStr := 'LET';
+        PRINT:
+            idToStr := 'PRINT';
+        IF_:
+            idToStr := 'IF';
+        END_:
+            idToStr := 'END';
+        GOTO_:
+            idToStr := 'GOTO';
+        ERROR, FINAL_TOKEN:
+            idToStr := 'UNEXPECTED TOKEN';
+        else:
+            idToStr := 'COMPILER ERROR';
+    end;
 end;
 
 end.
