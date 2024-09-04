@@ -39,6 +39,8 @@ const
     IF_ = 66;
     END_ = 67;
 
+    DEFAULT_CAPACITY = 8;
+
 type
     TToken = record
         tokenId: integer;
@@ -48,25 +50,56 @@ type
     end;
 
     TTokenList = record
-
+        start: array of TToken;
+        count: integer;
+        capacity: integer;
     end;
 
 function newToken(tokenId: integer; value: integer; line: integer; column: integer): TToken;
+function init(): TTokenList;
+procedure append(var list: TTokenList; token: TToken);
 
 implementation
 
-function newToken(
-    tokenId: integer;
-    value: integer;
-    line: integer;
-    column: integer
-    ): TToken;
-
+function newToken(tokenId: integer; value: integer; line: integer; column: integer): TToken;
 begin
     newToken.tokenId := tokenId;
     newToken.value := value;
     newToken.line := line;
     newToken.column := column;
+end;
+
+function init(): TTokenList;
+
+var
+    newList: TTokenList;
+
+begin
+    newList.count := 0;
+    newList.capacity := DEFAULT_CAPACITY;
+    setLength(newList.start, DEFAULT_CAPACITY);
+
+    init := newList;
+end;
+
+procedure append(var list: TTokenList; token: TToken);
+
+begin
+    //writeLn('capacity = ', list.capacity);
+    if list.count >= list.capacity then
+    begin
+        setLength(list.start, list.capacity * 2);
+        list.capacity *= 2;
+    end;
+
+    list.start[list.count] := token;
+    list.count += 1;
+end;
+
+procedure pop(var list: TTokenList);
+begin
+    if list.count > 0 then
+        list.count -= 1;
 end;
 
 end.

@@ -1,14 +1,14 @@
-program simple(input);
+program simple;
 
 uses
     scanner,
     token,
-    list;
-    //parser;
+    statement,
+    parser;
 
 var
     sourceFile: text;
-    tokens: TList;
+    tokens: TTokenList;
 
 begin
     if paramCount() <> 1 then
@@ -32,8 +32,8 @@ begin
         //end;
 
         tokens := scanner.scanTokens(sourceFile);
-        close(sourceFile);
+        parser.parse(tokens);
 
-        
+        close(sourceFile);
     end;
 end.

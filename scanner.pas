@@ -4,13 +4,12 @@ interface
 
 uses
     sysutils,
-    token,
-    list;
+    token;
 
 type
     charPtr = ^char;
 
-function scanTokens(var source: text): TList;
+function scanTokens(var source: text): TTokenList;
 function number(var source: text; c: charPtr): integer;
 function identifier(var source: text; c: charPtr): integer;
 
@@ -19,23 +18,23 @@ implementation
 var
     line: integer = 1;
     column: integer = 0;
-    tokens: TList;
+    tokens: TTokenList;
 
 procedure lineFeed();
 begin
-    list.append(@tokens, token.newToken(token.LF, 0, line, column));
+    token.append(tokens, token.newToken(token.LF, 0, line, column));
     line += 1;
     column := 0;
 end;
 
-function scanTokens(var source: text): TList;
+function scanTokens(var source: text): TTokenList;
 
 var
     return: integer;
     c, previous: char;
 
 begin
-    tokens := list.init();
+    tokens := token.init();
     previous := #0;
 
     while true do
@@ -45,7 +44,7 @@ begin
         writeLn('c = ', c);
         case c of
             '+':
-                list.append(@tokens, token.newToken(
+                token.append(tokens, token.newToken(
                     token.PLUS,
                     0,
                     line,
@@ -53,7 +52,7 @@ begin
                 ));
 
             '-':
-                list.append(@tokens, token.newToken(
+                token.append(tokens, token.newToken(
                     token.MINUS,
                     0,
                     line,
@@ -61,7 +60,7 @@ begin
                 ));
 
             '*':
-                list.append(@tokens, token.newToken(
+                token.append(tokens, token.newToken(
                     token.PRODUCT,
                     0,
                     line,
@@ -69,7 +68,7 @@ begin
                 ));
 
             '/':
-                list.append(@tokens, token.newToken(
+                token.append(tokens, token.newToken(
                     token.DIVISION,
                     0,
                     line,
@@ -77,7 +76,7 @@ begin
                 ));
 
             '%':
-                list.append(@tokens, token.newToken(
+                token.append(tokens, token.newToken(
                     token.MODULO,
                     0,
                     line,
@@ -111,7 +110,7 @@ begin
                     end;
 
                     '=':
-                        list.append(@tokens, token.newToken(
+                        token.append(tokens, token.newToken(
                             token.EQUAL_EQUAL,
                             0,
                             line,
@@ -119,7 +118,7 @@ begin
                         ));
 
                     '!':
-                        list.append(@tokens, token.newToken(
+                        token.append(tokens, token.newToken(
                             token.BANG_EQUAL,
                             0,
                             line,
@@ -127,7 +126,7 @@ begin
                         ));
 
                     '>':
-                        list.append(@tokens, token.newToken(
+                        token.append(tokens, token.newToken(
                             token.GREATER_EQUAL,
                             0,
                             line,
@@ -135,7 +134,7 @@ begin
                         ));
 
                     '<':
-                        list.append(@tokens, token.newToken(
+                        token.append(tokens, token.newToken(
                             token.LESS_EQUAL,
                             0,
                             line,
@@ -143,7 +142,7 @@ begin
                         ));
 
                     ' ':
-                        list.append(@tokens, token.newToken(
+                        token.append(tokens, token.newToken(
                             token.EQUAL,
                             0,
                             line,
@@ -155,7 +154,7 @@ begin
             begin
                 case previous of
                     '<':
-                        list.append(@tokens, token.newToken(
+                        token.append(tokens, token.newToken(
                             token.LESS,
                             0,
                             line,
@@ -163,7 +162,7 @@ begin
                         ));
 
                     '>':
-                        list.append(@tokens, token.newToken(
+                        token.append(tokens, token.newToken(
                             token.GREATER,
                             0,
                             line,
@@ -175,7 +174,7 @@ begin
             '0'..'9':
             begin
                 return := number(source, @c);
-                list.append(@tokens, token.newToken(
+                token.append(tokens, token.newToken(
                     token.CONSTANT,
                     return,
                     line,
@@ -188,7 +187,7 @@ begin
                 return := identifier(source, @c);
 
                 if return = -1 then
-                    list.append(@tokens, token.newToken(
+                    token.append(tokens, token.newToken(
                         token.ID,
                         ord(return),
                         line,
@@ -197,7 +196,7 @@ begin
                 else
                     if return = token.REM then
                     begin
-                        list.append(@tokens, token.newToken(
+                        token.append(tokens, token.newToken(
                             token.REM,
                             0,
                             line,
@@ -211,7 +210,7 @@ begin
                         continue;
                     end
                     else
-                        list.append(@tokens, token.newToken(
+                        token.append(tokens, token.newToken(
                             return,
                             0,
                             line,
