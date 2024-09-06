@@ -46,7 +46,7 @@ const
 
 type
     TToken = record
-        tokenId: integer;
+        id: integer;
         value: integer;
         line: integer;
         column: integer;

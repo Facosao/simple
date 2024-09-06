@@ -9,7 +9,7 @@ type
     TPossibleOperands = (constant, id, error);
 
     TOperand = record
-        case operand: TPossibleOperands of
+        case value: TPossibleOperands of
             constant: (n: integer);
             id: (c: char);
             error: ();
@@ -28,6 +28,19 @@ type
         leftOperand: TOperand;
         algebraOperator: TAlgebraOperator;
         rightOperand: TOperand;
+    end;
+
+    TPossibleAssignment = (
+        constant,
+        algebraExpr,
+        error
+    );
+
+    TAssignment = record
+        case value: TPossibleAssignment of
+            constant: (c: integer);
+            algebraExpr: (expr: TAlgebraExpr);
+            error: ();
     end;
 
     TBooleanOperator = (
@@ -60,6 +73,7 @@ type
     TLetTuple = record
         id: char;
         algebraExpr: TAlgebraExpr;
+        assignment: TAssignment;
     end;
 
     TIfTuple = record
@@ -68,7 +82,7 @@ type
     end;
 
     TReservedWord = record
-        case thisWord: TPossibleWords of
+        case value: TPossibleWords of
             rem: ();
             input: (inputId: char);
             let: (letTuple: TLetTuple);
