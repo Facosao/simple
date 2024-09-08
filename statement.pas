@@ -6,13 +6,13 @@ const
     DEFAULT_CAPACITY = 2;
 
 type
-    TPossibleOperands = (constant, id, error);
+    TPossibleOperands = (constantOperand, idOperand, operandError);
 
     TOperand = record
         case value: TPossibleOperands of
-            constant: (n: integer);
-            id: (c: char);
-            error: ();
+            constantOperand: (n: integer);
+            idOperand: (c: char);
+            operandError: ();
     end;
 
     TAlgebraOperator = (
@@ -21,26 +21,26 @@ type
         product,
         division,
         modulo,
-        error
+        algebraOperatorError
     );
 
     TAlgebraExpr = record
         leftOperand: TOperand;
-        algebraOperator: TAlgebraOperator;
+        algebraExprOperator: TAlgebraOperator;
         rightOperand: TOperand;
     end;
 
     TPossibleAssignment = (
-        constant,
-        algebraExpr,
-        error
+        leftConstant,
+        assignmentAlgebraExpr,
+        assignmentError
     );
 
     TAssignment = record
         case value: TPossibleAssignment of
-            constant: (c: integer);
-            algebraExpr: (expr: TAlgebraExpr);
-            error: ();
+            leftConstant: (c: integer);
+            assignmentAlgebraExpr: (expr: TAlgebraExpr);
+            assignmentError: ();
     end;
 
     TBooleanOperator = (
@@ -50,12 +50,12 @@ type
         greater,
         lessEqual,
         greaterEqual,
-        error
+        booleanOperatorError
     );
 
     TBooleanExpr = record
         leftOperand: TOperand;
-        booleanOperator: TBooleanOperator;
+        booleanExprOperator: TBooleanOperator;
         rightOperand: TOperand;
     end;
 
@@ -64,21 +64,20 @@ type
         input,
         let,
         print,
-        goto_,
+        gotoWord,
         if_,
         end_,
-        error
+        wordError
     );
 
     TLetTuple = record
-        id: char;
-        algebraExpr: TAlgebraExpr;
-        assignment: TAssignment;
+        letId: char;
+        letAssignment: TAssignment;
     end;
 
     TIfTuple = record
-        booleanExpr: TBooleanExpr;
-        gotoConstant: integer;
+        ifBooleanExpr: TBooleanExpr;
+        thenConstant: integer;
     end;
 
     TReservedWord = record
@@ -87,10 +86,10 @@ type
             input: (inputId: char);
             let: (letTuple: TLetTuple);
             print: (printId: char);
-            goto_: (gotoConstant: integer);
+            gotoWord: (gotoConstant: integer);
             if_: (ifTuple: TIfTuple);
             end_: ();
-            error: ();
+            wordError: ();
     end;
 
     TStatement = record
@@ -111,16 +110,10 @@ procedure pop(var list: TStatementList);
 implementation
 
 function newList(): TStatementList;
-
-var
-    newList: TStatementList;
-
 begin
     newList.count := 0;
     newList.capacity := DEFAULT_CAPACITY;
     setLength(newList.start, DEFAULT_CAPACITY);
-
-    init := newList;
 end;
 
 procedure append(var list: TStatementList; stmt: TStatement);

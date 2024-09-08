@@ -2,6 +2,8 @@ unit token;
 
 interface
 
+uses sysutils;
+
 const
     // Control characters
     LF = 10;
@@ -39,7 +41,8 @@ const
     END_ = 67;
 
     // Special control tokens
-    ERROR = 99;
+    ERROR = 98;
+    START_TOKEN = 99;
     FINAL_TOKEN = 100;
 
     DEFAULT_CAPACITY = 8;
@@ -61,6 +64,8 @@ type
 function newToken(id: integer; value: integer; line: integer; column: integer): TToken;
 function newList(): TTokenList;
 procedure append(var list: TTokenList; token: TToken);
+procedure pop(var list: TTokenList);
+function idToStr(idValue: integer): string;
 
 implementation
 
@@ -73,16 +78,10 @@ begin
 end;
 
 function newList(): TTokenList;
-
-var
-    newList: TTokenList;
-
 begin
     newList.count := 0;
     newList.capacity := DEFAULT_CAPACITY;
     setLength(newList.start, DEFAULT_CAPACITY);
-
-    init := newList;
 end;
 
 procedure append(var list: TTokenList; token: TToken);
@@ -105,9 +104,9 @@ begin
         list.count -= 1;
 end;
 
-function idToStr(id: integer): string;
+function idToStr(idValue: integer): string;
 begin
-    case id of
+    case idValue of
         LF:
             idToStr := 'LINE FEED';
         EOF:
@@ -136,10 +135,15 @@ begin
             idToStr := 'END';
         GOTO_:
             idToStr := 'GOTO';
-        ERROR, FINAL_TOKEN:
-            idToStr := 'UNEXPECTED TOKEN';
-        else:
-            idToStr := 'COMPILER ERROR';
+        ERROR:
+            idToStr := 'ERROR TOKEN';
+        START_TOKEN:
+            idToStr := 'START TOKEN';
+        
+        FINAL_TOKEN:
+            idToStr := 'FINAL TOKEN';
+        else
+            idToStr := sysutils.IntToStr(idValue);
     end;
 end;
 

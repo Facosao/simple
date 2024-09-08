@@ -10,7 +10,7 @@ type
     charPtr = ^char;
 
 function scanTokens(var source: text): TTokenList;
-function number(var source: text; c: charPtr): integer;
+function number(var source: text; c: charPtr; negative: boolean): integer;
 function identifier(var source: text; c: charPtr): integer;
 
 implementation
@@ -35,6 +35,7 @@ var
 
 begin
     tokens := token.newList();
+    token.append(tokens, token.newToken(token.START_TOKEN, 0, 0, 0));
     previous := #0;
 
     while true do
@@ -44,43 +45,28 @@ begin
         writeLn('c = ', c);
         case c of
             '+':
-                token.append(tokens, token.newToken(
-                    token.PLUS,
-                    0,
-                    line,
-                    column
-                ));
+                token.append(tokens, token.newToken(token.PLUS, 0, line, column));
 
             '-':
-                token.append(tokens, token.newToken(
-                    token.MINUS,
-                    0,
-                    line,
-                    column
-                ));
+            begin
+                previous := '-';
+                token.append(tokens, token.newToken(token.MINUS, 0, line, column));
+                continue;
+            end;
 
             '*':
                 token.append(tokens, token.newToken(
-                    token.PRODUCT,
-                    0,
-                    line,
-                    column
+                    token.PRODUCT, 0, line, column
                 ));
 
             '/':
                 token.append(tokens, token.newToken(
-                    token.DIVISION,
-                    0,
-                    line,
-                    column
+                    token.DIVISION, 0, line, column
                 ));
 
             '%':
                 token.append(tokens, token.newToken(
-                    token.MODULO,
-                    0,
-                    line,
-                    column
+                    token.MODULO, 0, line, column
                 ));
 
             '!':
@@ -92,12 +78,14 @@ begin
             '<':
             begin
                 previous := '<';
+                token.append(tokens, token.newToken(token.LESS, 0, line, column));
                 continue;
             end;
 
             '>':
             begin
                 previous := '>';
+                token.append(tokens, token.newToken(token.GREATER, 0, line, column));
                 continue;
             end;
             
@@ -106,74 +94,55 @@ begin
                     #0:
                     begin
                         previous := '=';
+                        token.append(tokens, token.newToken(token.EQUAL, 0, line, column));
                         continue;
                     end;
 
                     '=':
+                    begin
+                        token.pop(tokens);
                         token.append(tokens, token.newToken(
-                            token.EQUAL_EQUAL,
-                            0,
-                            line,
-                            column
+                            token.EQUAL_EQUAL, 0, line, column
                         ));
+                    end;
 
                     '!':
                         token.append(tokens, token.newToken(
-                            token.BANG_EQUAL,
-                            0,
-                            line,
-                            column
+                            token.BANG_EQUAL, 0, line, column
                         ));
 
                     '>':
+                    begin
+                        token.pop(tokens);
                         token.append(tokens, token.newToken(
-                            token.GREATER_EQUAL,
-                            0,
-                            line,
-                            column
+                            token.GREATER_EQUAL, 0, line, column
                         ));
+                    end;
 
                     '<':
+                    begin
+                        token.pop(tokens);
                         token.append(tokens, token.newToken(
-                            token.LESS_EQUAL,
-                            0,
-                            line,
-                            column
+                            token.LESS_EQUAL, 0, line, column
                         ));
+                    end;
 
                     ' ':
                         token.append(tokens, token.newToken(
-                            token.EQUAL,
-                            0,
-                            line,
-                            column
+                            token.EQUAL, 0, line, column
                         ));
                 end;
-
-            ' ':
-            begin
-                case previous of
-                    '<':
-                        token.append(tokens, token.newToken(
-                            token.LESS,
-                            0,
-                            line,
-                            column
-                        ));
-
-                    '>':
-                        token.append(tokens, token.newToken(
-                            token.GREATER,
-                            0,
-                            line,
-                            column
-                        ));
-                end;
-            end;
 
             '0'..'9':
             begin
-                return := number(source, @c);
+                if previous = '-' then
+                begin
+                    token.pop(tokens);
+                    return := number(source, @c, true);
+                end
+                else
+                    return := number(source, @c, false);
+                
                 token.append(tokens, token.newToken(
                     token.CONSTANT,
                     return,
@@ -197,10 +166,7 @@ begin
                     if return = token.REM then
                     begin
                         token.append(tokens, token.newToken(
-                            token.REM,
-                            0,
-                            line,
-                            column
+                            token.REM, 0, line, column
                         ));
                         
                         while c <> #10 do
@@ -211,17 +177,14 @@ begin
                     end
                     else
                         token.append(tokens, token.newToken(
-                            return,
-                            0,
-                            line,
-                            column
+                            return, 0, line, column
                         ));
             end;
 
             #10: // LF
                 lineFeed();
 
-            #11, #13: // CR, TAB
+            #11, #13, #32: // CR, TAB, SPACE
                 repeat until true; // Empty statement
 
             #26: // EOF
@@ -235,20 +198,23 @@ begin
         previous := #0;
     end; 
 
-    token.append(tokens, token.newToken(token.FINAL_TOKEN, 0, line, column));
+    //token.append(tokens, token.newToken(token.FINAL_TOKEN, 0, line, column));
     scanTokens := tokens;
 end;
 
-function number(var source: text; c: charPtr): integer;
+function number(var source: text; c: charPtr; negative: boolean): integer;
 
 var
-    buffer: string[5] = '00000';
+    buffer: string[5] = '+0000';
     temp: string[5] = '00000';
-    bufPtr: integer = 1;
+    bufPtr: integer = 2;
     i: integer;
     //temp: char;
 
 begin
+    if negative then
+        buffer[1] := '-';
+
     repeat
         //writeLn('n = ', c^, ', bufPtr = ', bufPtr, ', buffer = ', buffer);
         case c^ of
@@ -266,6 +232,7 @@ begin
                 //writeLn('break loop!');
                 if c^ = #10 then
                     lineFeed();
+                
                 break;
         end;
 
@@ -280,7 +247,8 @@ begin
     begin
         temp := buffer;
         buffer := '00000';
-        for i := 1 to bufPtr - 1 do
+        buffer[1] := temp[1];
+        for i := 2 to bufPtr - 1 do
             buffer[6 - bufPtr + i] := temp[i];
     end;
 

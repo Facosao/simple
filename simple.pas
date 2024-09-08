@@ -10,6 +10,7 @@ var
     sourceFile: text;
     tokens: TTokenList;
     stmts: TStatementList;
+    i: integer;
 
 begin
     if paramCount() <> 1 then
@@ -22,17 +23,15 @@ begin
         assign(sourceFile, paramStr(1));
         reset(sourceFile);
 
-        //writeLn('arg = ', paramStr(1));
-        //read(sourceFile, c);
-        //writeLn('c = ', c);
-        
-        //while not eof(sourceFile) do
-        //begin
-        //    read(sourceFile, c);
-        //    writeLn('c = ', c);
-        //end;
-
         tokens := scanner.scanTokens(sourceFile);
+
+        for i := 0 to tokens.count do
+        begin
+            write(token.idToStr(tokens.start[i].id), ' ');
+            if tokens.start[i].id = token.LF then
+                write(#10);
+        end;
+
         stmts := parser.parse(tokens);
 
         close(sourceFile);
