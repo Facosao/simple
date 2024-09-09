@@ -25,7 +25,7 @@ begin
 
         tokens := scanner.scanTokens(sourceFile);
 
-        for i := 0 to tokens.count do
+        for i := 0 to tokens.count - 1 do
         begin
             write(token.idToStr(tokens.start[i].id), ' ');
             if tokens.start[i].id = token.LF then

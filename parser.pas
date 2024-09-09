@@ -34,20 +34,6 @@ const
         rightOperand: (value: operandError)
     );
 
-    //LET_ERROR: TLetTuple = (
-    //    letId: 'E';
-    //    letAssignment: (value: assignmentError);
-    //);
-    //
-    //IF_ERROR: TIfTuple = (
-    //    ifBooleanExpr: (
-    //        leftOperand: (value: operandError);
-    //        booleanOperator: booleanOperatorError;
-    //        rightOperand: (value: operandError)
-    //    );
-    //    thenConstant: -1;
-    //);
-
     OPERAND_ERROR: TOperand = (value: operandError);
 
     ALGEBRA_OPERATOR_ERROR: TAlgebraOperator = algebraOperatorError;
@@ -68,6 +54,8 @@ var
 // Parser functions
 procedure hadStmtError(); forward;
 procedure synchronize(); forward;
+procedure advance(); forward;
+function isAtEnd(): boolean; forward; 
 function peek(): TToken; forward;
 function peekNext(): TToken; forward;
 
@@ -98,18 +86,16 @@ begin
     hadError := false;
     stmtError := false;
 
-    while curToken <> @tokens.start[tokens.count - 1] do
-    begin
+    repeat
         newStmt := addStatement();
         
         if stmtError = false then
-            statement.append(parser.statements, newStmt)
+            statement.append(statements, newStmt)
         else
             synchronize();
         
-
         stmtError := false;
-    end;
+    until isAtEnd();
 
     parse := parser.statements;
 end;
@@ -132,7 +118,7 @@ begin
     if stmtError then
         exit(CONSTANT_ERROR);
     writeLn('--- constant!');
-    curToken += 1;
+    advance();
 
     if curToken^.id = token.CONSTANT then
     begin
@@ -152,7 +138,7 @@ begin
     if stmtError then
         exit(RESERVED_WORD_ERROR);
     writeLn('--- reserved word!');
-    curToken += 1;
+    advance();
 
     case curToken^.id of
         token.REM:
@@ -213,7 +199,7 @@ begin
     if stmtError then
         exit(ID_ERROR);
     writeLn('--- id!');
-    curToken += 1;
+    advance();
 
     if curToken^.id = token.ID then
     begin
@@ -233,7 +219,7 @@ begin
     if stmtError then
         exit(ASSIGNMENT_ERROR);
     writeLn('--- assignment!');
-    curToken += 1;
+    advance();
 
     if curToken^.id <> token.EQUAL then
     begin
@@ -268,7 +254,7 @@ begin
     if stmtError then
         exit(CONSTANT_ERROR);
     writeLn('--- goto!');
-    curToken += 1;
+    advance();
 
     if curToken^.id = token.GOTO_ then
         exit(constant())
@@ -306,7 +292,7 @@ begin
         exit(OPERAND_ERROR);
 
     writeLn('--- operator!');
-    curToken += 1;
+    advance();
 
     case curToken^.id of
         token.CONSTANT:
@@ -334,7 +320,7 @@ begin
         exit(ALGEBRA_OPERATOR_ERROR);
 
     writeLn('--- algebra operator!');
-    curToken += 1;
+    advance();
 
     case curToken^.id of
         token.PLUS:
@@ -362,7 +348,7 @@ begin
         exit(BOOLEAN_OPERATOR_ERROR);
 
     writeLn('--- boolean operator!');
-    curToken += 1;
+    advance();
 
     case curToken^.id of
         token.EQUAL_EQUAL:
@@ -396,7 +382,7 @@ begin
         exit();
 
     writeLn('--- line feed!');
-    curToken += 1;
+    advance();
 
     if curToken^.id <> token.LF then
     begin
@@ -404,6 +390,20 @@ begin
         writeLn('Expected LF, got ', token.idToStr(curToken^.id));
     end
 end;
+
+procedure advance();
+begin
+    if isAtEnd() = false then
+        curToken += 1;
+end;
+
+function isAtEnd(): boolean;
+begin
+    if curToken = @tokens.start[tokens.count - 1] then
+        isAtEnd := true
+    else
+        isAtEnd := false;
+end; 
 
 procedure hadStmtError();
 begin
@@ -414,18 +414,25 @@ end;
 
 function peek(): TToken;
 begin
-    peek := (curToken + 1)^;
+    if (curToken + 1) >= @tokens.start[tokens.count - 1] then
+        peek := curToken^
+    else
+        peek := (curToken + 1)^
+    
 end;
 
 function peekNext(): TToken;
 begin
-    peekNext := (curToken + 2)^;
+    if (curToken + 2) >= @tokens.start[tokens.count - 1] then
+        peekNext := curToken^
+    else
+        peekNext := (curToken + 2)^
 end;
 
 procedure synchronize();
 begin
-    while curToken^.id <> token.LF do
-        curToken += 1;
+    while (curToken^.id <> token.LF) and (not isAtEnd()) do
+        advance();
 end;
 
 end.
