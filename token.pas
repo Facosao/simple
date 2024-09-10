@@ -41,10 +41,10 @@ const
     END_ = 67;
 
     // Special control tokens
-    ERROR = 98;
     START_TOKEN = 99;
     FINAL_TOKEN = 100;
 
+    INVALID_TOKEN = 98;
     INVALID_CONSTANT = 101;
     INVALID_IDENTIFIER = 102;
 
@@ -64,21 +64,12 @@ type
         capacity: integer;
     end;
 
-function newToken(id: integer; value: integer; line: integer; column: integer): TToken;
 function newList(): TTokenList;
 procedure append(var list: TTokenList; token: TToken);
 procedure pop(var list: TTokenList);
 function idToStr(idValue: integer): string;
 
 implementation
-
-function newToken(id: integer; value: integer; line: integer; column: integer): TToken;
-begin
-    newToken.id := id;
-    newToken.value := value;
-    newToken.line := line;
-    newToken.column := column;
-end;
 
 function newList(): TTokenList;
 begin
@@ -138,12 +129,12 @@ begin
             idToStr := 'END';
         GOTO_:
             idToStr := 'GOTO';
-        ERROR:
-            idToStr := 'ERROR TOKEN';
         START_TOKEN:
             idToStr := 'START TOKEN';
         FINAL_TOKEN:
             idToStr := 'FINAL TOKEN';
+        INVALID_TOKEN:
+            idToStr := 'INVALID TOKEN';
         INVALID_CONSTANT:
             idToStr := 'INVALID CONSTANT';
         INVALID_IDENTIFIER:

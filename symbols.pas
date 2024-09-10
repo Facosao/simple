@@ -8,7 +8,7 @@ type
 var
     variables: TPossibleIdentifiers;
     constants: array of integer;
-    lines: array of integer;
+    lines: array of integer; // Redundant: Lines are part of a statement.
     constantsCount: integer;
     constantsCapacity: integer;
     linesCount: integer;

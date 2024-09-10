@@ -18,12 +18,6 @@ function parse(var _tokens: TTokenList): TStatementList;
 implementation
 
 const
-    STMT_ERROR: TStatement = (
-        lineNumber: 0;
-        sourceLine: 0;
-        reservedWord: (value: wordError)
-    );
-
     RESERVED_WORD_ERROR: TReservedWord = (value: wordError);
 
     ID_ERROR: char = 'E';
@@ -107,25 +101,27 @@ end;
 
 function addStatement(): TStatement;
 begin
-    writeLn('----- NEW STATEMENT! -----');
+    //writeLn('----- NEW STATEMENT! -----');
     addStatement.lineNumber := constant();
+
+    if not stmtError then
+        symbols.appendLine(addStatement.lineNumber)
+    else
+        // Skip ascending order semantic analysis
+        addStatement.lineNumber := 9999;
+
     addStatement.sourceLine := currentLine();
     addStatement.reservedWord := reservedWord();
     lineFeed();
 
-    if stmtError then
-        exit(STMT_ERROR);
-
-    symbols.appendLine(addStatement.lineNumber);
-
-    exit(addStatement);
+    //exit(addStatement);
 end;
 
 function constant(): integer;
 begin
     if stmtError then
         exit(CONSTANT_ERROR);
-    writeLn('--- constant!');
+    //writeLn('--- constant!');
     advance();
 
     if curToken^.id = token.CONSTANT then
@@ -145,7 +141,7 @@ function reservedWord(): TReservedWord;
 begin
     if stmtError then
         exit(RESERVED_WORD_ERROR);
-    writeLn('--- reserved word!');
+    //writeLn('--- reserved word!');
     advance();
 
     case curToken^.id of
@@ -175,11 +171,8 @@ begin
         begin
             reservedWord.value := gotoWord;
             reservedWord.gotoConstant := constant();
-            reservedWord.gotoLine := (curToken - 1)^.line;
-            reservedWord.gotoColumn := (curToken - 1)^.column;
-
-            if not stmtError then
-                symbols.appendLine(reservedWord.gotoConstant); 
+            reservedWord.gotoLine := curToken^.line;
+            reservedWord.gotoColumn := curToken^.column;
         end;
 
         token.IF_:
@@ -197,23 +190,25 @@ begin
         else
             hadStmtError();
             writeLn('Expected RESERVED WORD, got ', token.idToStr(curToken^.id));
-            reservedWord := RESERVED_WORD_ERROR;
     end;
+
+    if stmtError then
+        exit(RESERVED_WORD_ERROR);
 end;
 
 function id(): char;
 begin
     if stmtError then
         exit(ID_ERROR);
-    writeLn('--- id!');
+    //writeLn('--- id!');
     advance();
 
     if curToken^.id = token.ID then
     begin
         id := chr(curToken^.value);
         //symbols.variables[id] := true;
-        writeLn('---- DEBUG VALUE   : ', curToken^.value);
-        writeLn('---- DEBUG VARIABLE: ', chr(curToken^.value));
+        //writeLn('---- DEBUG VALUE   : ', curToken^.value);
+        //writeLn('---- DEBUG VARIABLE: ', chr(curToken^.value));
         include(symbols.variables, chr(curToken^.value));
         //symbols.variables += [id];
     end
@@ -229,7 +224,7 @@ function assignment(): TAssignment;
 begin
     if stmtError then
         exit(ASSIGNMENT_ERROR);
-    writeLn('--- assignment!');
+    //writeLn('--- assignment!');
     advance();
 
     if curToken^.id <> token.EQUAL then
@@ -268,15 +263,12 @@ var
 begin
     if stmtError then
         exit(CONSTANT_ERROR);
-    writeLn('--- goto!');
+    //writeLn('--- goto!');
     advance();
 
     if curToken^.id = token.GOTO_ then
     begin
         c := constant();
-        if not stmtError then
-            symbols.appendLine(c);
-
         exit(c);
     end
     else
@@ -291,7 +283,7 @@ function algebraExpr(): TAlgebraExpr;
 begin
     if stmtError then
         exit(ALGEBRA_EXPR_ERROR);
-    writeLn('--- algebra expr!');
+    //writeLn('--- algebra expr!');
     algebraExpr.leftOperand := operand();
     algebraExpr.algebraExprOperator := algebraOperator();
     algebraExpr.rightOperand := operand();
@@ -301,7 +293,7 @@ function booleanExpr(): TBooleanExpr;
 begin
     if stmtError then
         exit(BOOLEAN_EXPR_ERROR);
-    writeLn('--- boolean expr!');
+    //writeLn('--- boolean expr!');
     booleanExpr.leftOperand := operand();
     booleanExpr.booleanExprOperator := booleanOperator();
     booleanExpr.rightOperand := operand();
@@ -312,7 +304,7 @@ begin
     if stmtError then
         exit(OPERAND_ERROR);
 
-    writeLn('--- operator!');
+    //writeLn('--- operator!');
     advance();
 
     case curToken^.id of
@@ -343,7 +335,7 @@ begin
     if stmtError then
         exit(ALGEBRA_OPERATOR_ERROR);
 
-    writeLn('--- algebra operator!');
+    //writeLn('--- algebra operator!');
     advance();
 
     case curToken^.id of
@@ -371,7 +363,7 @@ begin
     if stmtError then
         exit(BOOLEAN_OPERATOR_ERROR);
 
-    writeLn('--- boolean operator!');
+    //writeLn('--- boolean operator!');
     advance();
 
     case curToken^.id of
@@ -405,7 +397,7 @@ begin
     if stmtError then
         exit();
 
-    writeLn('--- line feed!');
+    //writeLn('--- line feed!');
     advance();
 
     if (curToken^.id <> token.LF) and (not isAtEnd()) then

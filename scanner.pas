@@ -17,18 +17,37 @@ implementation
 
 const
     CONSTANT_ERROR = 32000;
-    IDENTIFIER_ERROR = 'E';
+    IDENTIFIER_ERROR = 32001;
+    SKIP_READ = 'S';
 
 var
     line: integer = 1;
-    column: integer = 0;
+    column: integer = 1;
+    columnBuffer: integer = 0;
     tokens: TTokenList;
+
+procedure advanceTokenColumn();
+begin
+    column += columnBuffer;
+    columnBuffer := 0;
+end;
+
+function newToken(tokenId: integer; tokenValue: integer): TToken;
+begin
+    newToken.id := tokenId;
+    newToken.value := tokenValue;
+    newToken.line := line;
+    newToken.column := column;
+
+    advanceTokenColumn();
+end;
 
 procedure lineFeed();
 begin
-    token.append(tokens, token.newToken(token.LF, 0, line, column));
+    //writeLn('--- scanner line feed!');
+    token.append(tokens, newToken(token.LF, 0));
     line += 1;
-    column := 0;
+    column := 1;
 end;
 
 function scanTokens(var source: text): TTokenList;
@@ -39,33 +58,36 @@ var
 
 begin
     tokens := token.newList();
-    token.append(tokens, token.newToken(token.START_TOKEN, 0, 0, 0));
+    token.append(tokens, newToken(token.START_TOKEN, 0));
     previous := #0;
 
     while true do
     begin
-        read(source, c);
-        column += 1;
-        writeLn('c = ', c);
+        if previous <> SKIP_READ then begin
+            read(source, c);
+            columnBuffer += 1;
+        end;
+        
+        //writeLn('c = ', c);
         case c of
             '+':
-                token.append(tokens, token.newToken(token.PLUS, 0, line, column));
+                token.append(tokens, newToken(token.PLUS, 0));
 
             '-':
             begin
                 previous := '-';
-                token.append(tokens, token.newToken(token.MINUS, 0, line, column));
+                token.append(tokens, newToken(token.MINUS, 0));
                 continue;
             end;
 
             '*':
-                token.append(tokens, token.newToken(token.PRODUCT, 0, line, column));
+                token.append(tokens, newToken(token.PRODUCT, 0));
 
             '/':
-                token.append(tokens, token.newToken(token.DIVISION, 0, line, column));
+                token.append(tokens, newToken(token.DIVISION, 0));
 
             '%':
-                token.append(tokens, token.newToken(token.MODULO, 0, line, column));
+                token.append(tokens, newToken(token.MODULO, 0));
 
             '!':
             begin
@@ -76,14 +98,14 @@ begin
             '<':
             begin
                 previous := '<';
-                token.append(tokens, token.newToken(token.LESS, 0, line, column));
+                token.append(tokens, newToken(token.LESS, 0));
                 continue;
             end;
 
             '>':
             begin
                 previous := '>';
-                token.append(tokens, token.newToken(token.GREATER, 0, line, column));
+                token.append(tokens, newToken(token.GREATER, 0));
                 continue;
             end;
             
@@ -92,29 +114,29 @@ begin
                     #0:
                     begin
                         previous := '=';
-                        token.append(tokens, token.newToken(token.EQUAL, 0, line, column));
+                        token.append(tokens, newToken(token.EQUAL, 0));
                         continue;
                     end;
 
                     '=':
                     begin
                         token.pop(tokens);
-                        token.append(tokens, token.newToken(token.EQUAL_EQUAL, 0, line, column));
+                        token.append(tokens, newToken(token.EQUAL_EQUAL, 0));
                     end;
 
                     '!':
-                        token.append(tokens, token.newToken(token.BANG_EQUAL, 0, line, column));
+                        token.append(tokens, newToken(token.BANG_EQUAL, 0));
 
                     '>':
                     begin
                         token.pop(tokens);
-                        token.append(tokens, token.newToken(token.GREATER_EQUAL, 0, line, column));
+                        token.append(tokens, newToken(token.GREATER_EQUAL, 0));
                     end;
 
                     '<':
                     begin
                         token.pop(tokens);
-                        token.append(tokens, token.newToken(token.LESS_EQUAL, 0, line, column));
+                        token.append(tokens, newToken(token.LESS_EQUAL, 0));
                     end;
                 end;
 
@@ -129,35 +151,41 @@ begin
                     return := number(source, @c, false);
                 
                 if return = CONSTANT_ERROR then
-                    token.append(tokens, token.newToken(token.INVALID_CONSTANT, 0, line, column))
+                    token.append(tokens, newToken(token.INVALID_CONSTANT, 0))
                 else
-                    token.append(tokens, token.newToken(token.CONSTANT, return, line, column));
+                    token.append(tokens, newToken(token.CONSTANT, return));
+                
+                previous := SKIP_READ;
+                continue; // Preserve last read character
             end;
 
             'a'..'z':
             begin
                 return := identifier(source, @c);
 
-                if return = -1 then
-                begin
-                    if c = IDENTIFIER_ERROR then
-                        token.append(tokens, token.newToken(token.INVALID_IDENTIFIER, 0, line, column))
-                    else
-                        token.append(tokens, token.newToken(token.ID, ord(c), line, column));
-                end
-                else
-                    if return = token.REM then
-                    begin
-                        token.append(tokens, token.newToken(token.REM, 0, line, column));
+                case return of
+                    IDENTIFIER_ERROR:
+                        token.append(tokens, newToken(token.INVALID_IDENTIFIER, 0));
+
+                    97..122: // ASCII letters a .. z
+                        token.append(tokens, newToken(token.ID, return));
+
+                    token.REM: begin
+                        token.append(tokens, newToken(token.REM, 0));
                         
                         while (c <> #10) and (c <> #26) do
                             read(source, c);
 
                         lineFeed();
                         continue;
-                    end
+                    end;
+
                     else
-                        token.append(tokens, token.newToken(return, 0, line, column));
+                        token.append(tokens, newToken(return, 0));
+                end;
+                
+                previous := SKIP_READ;
+                continue; // Preserve last read character
             end;
 
             #10: // LF
@@ -170,8 +198,7 @@ begin
                 break;
 
             else
-                writeLn('Unexpected character ', ord(c),
-                        ' at position (', line, ', ', column, ').');
+                token.append(tokens, newToken(token.INVALID_TOKEN, 0));
         end;
 
         previous := #0;
@@ -196,11 +223,11 @@ begin
         case c^ of
             '0'..'9':
             begin
-                if bufPtr <= 5 then
-                begin
+                if bufPtr <= 5 then begin
                     buffer[bufPtr] := c^;
-                    bufPtr += 1;
                 end;
+
+                bufPtr += 1;
             end;
 
             else
@@ -211,11 +238,12 @@ begin
         end;
 
         read(source, c^);
-        column += 1;
+        //column += 1;
+        columnBuffer += 1;
     //until eof(source);
     until false;
 
-    writeLn('buffer = ', buffer);
+    //writeLn('buffer = ', buffer);
 
     if bufPtr <= 5 then
     begin
@@ -226,14 +254,14 @@ begin
             buffer[6 - bufPtr + i] := temp[i];
     end;
 
-    writeLn('buffer = ', buffer);
+    //writeLn('buffer = ', buffer);
     
     if bufPtr > 6 then
         number := CONSTANT_ERROR
     else
         number := sysutils.strToInt(buffer);
     
-    writeLn('number = ', number);
+    //writeLn('number = ', number, 'bufPtr = ', bufPtr);
 end;
 
 function identifier(var source: text; c: charPtr): integer;
@@ -262,7 +290,8 @@ begin
         end;
 
         read(source, c^);
-        column += 1;
+        //column += 1;
+        columnBuffer += 1;
     until false;
 
     case buffer of
@@ -282,13 +311,11 @@ begin
             identifier := token.END_;
         else
             if bufPtr > 2 then
-                c^ := IDENTIFIER_ERROR
+                identifier := IDENTIFIER_ERROR
             else
-                c^ := buffer[1];
-            
-            identifier := -1;
+                identifier := ord(buffer[1]);
     end;
-    writeLn('buffer = ', buffer, ' identifier = ', identifier);
+    //writeLn('buffer = ', buffer, ' identifier = ', identifier);
 end;
 
 end.

@@ -25,7 +25,7 @@ begin
 
     for i := 0 to stmts.count - 1 do
     begin
-        writeLn('lastLine = ', lastLine);
+        //writeLn('lastLine = ', lastLine);
         if lastLine = 0 then
             lastLine := stmts.start[i].lineNumber
         else
@@ -33,8 +33,8 @@ begin
             if stmts.start[i].lineNumber < lastLine then
             begin
                 analyze := true;
-                writeLn('Error at line ', stmts.start[i].sourceLine,
-                ': Line label ', stmts.start[i].lineNumber,
+                writeLn('Error at (', stmts.start[i].sourceLine,
+                ', 1): Line label ', stmts.start[i].lineNumber,
                 ' is not in ascending order.');
             end;
             
