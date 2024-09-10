@@ -4,7 +4,14 @@ interface
 
 uses
     token,
-    statement;
+    statement,
+    symbols;
+
+const
+    CONSTANT_ERROR: integer = -1;
+
+var
+    hadError: boolean;
 
 function parse(var _tokens: TTokenList): TStatementList;
 
@@ -13,10 +20,9 @@ implementation
 const
     STMT_ERROR: TStatement = (
         lineNumber: 0;
+        sourceLine: 0;
         reservedWord: (value: wordError)
     );
-
-    CONSTANT_ERROR: integer = -1;
 
     RESERVED_WORD_ERROR: TReservedWord = (value: wordError);
 
@@ -48,7 +54,6 @@ var
     tokens: TTokenList;
     curToken: ^TToken;
     statements: TStatementList;
-    hadError: boolean;
     stmtError: boolean;
 
 // Parser functions
@@ -58,6 +63,7 @@ procedure advance(); forward;
 function isAtEnd(): boolean; forward; 
 function peek(): TToken; forward;
 function peekNext(): TToken; forward;
+function currentLine(): integer; forward;
 
 // AST functions
 function addStatement(): TStatement; forward;
@@ -88,10 +94,9 @@ begin
 
     repeat
         newStmt := addStatement();
+        statement.append(statements, newStmt);
         
-        if stmtError = false then
-            statement.append(statements, newStmt)
-        else
+        if stmtError then
             synchronize();
         
         stmtError := false;
@@ -104,11 +109,14 @@ function addStatement(): TStatement;
 begin
     writeLn('----- NEW STATEMENT! -----');
     addStatement.lineNumber := constant();
+    addStatement.sourceLine := currentLine();
     addStatement.reservedWord := reservedWord();
     lineFeed();
 
     if stmtError then
         exit(STMT_ERROR);
+
+    symbols.appendLine(addStatement.lineNumber);
 
     exit(addStatement);
 end;
@@ -153,10 +161,6 @@ begin
         token.LET:
         begin
             reservedWord.value := let;
-            //reservedWord.letTuple := (
-            //    letId: id();
-            //    assignment: assignment();
-            //);
             reservedWord.letTuple.letId := id();
             reservedWord.letTuple.letAssignment := assignment();
         end;
@@ -171,17 +175,20 @@ begin
         begin
             reservedWord.value := gotoWord;
             reservedWord.gotoConstant := constant();
+            reservedWord.gotoLine := (curToken - 1)^.line;
+            reservedWord.gotoColumn := (curToken - 1)^.column;
+
+            if not stmtError then
+                symbols.appendLine(reservedWord.gotoConstant); 
         end;
 
         token.IF_:
         begin
             reservedWord.value := if_;
-            //reservedWord.ifTuple = (
-            //    ifBooleanExpr := booleanExpr();
-            //    thenConstant := goto_();
-            //);
             reservedWord.ifTuple.ifBooleanExpr := booleanExpr();
             reservedWord.ifTuple.thenConstant := goto_();
+            reservedWord.ifTuple.constantLine := curToken^.line;
+            reservedWord.ifTuple.constantColumn := curToken^.column;
         end;
 
         token.END_:
@@ -204,7 +211,11 @@ begin
     if curToken^.id = token.ID then
     begin
         id := chr(curToken^.value);
-        // mark id as used in variables array
+        //symbols.variables[id] := true;
+        writeLn('---- DEBUG VALUE   : ', curToken^.value);
+        writeLn('---- DEBUG VARIABLE: ', chr(curToken^.value));
+        include(symbols.variables, chr(curToken^.value));
+        //symbols.variables += [id];
     end
     else
     begin
@@ -238,8 +249,8 @@ begin
 
         token.LF:
         begin
-            assignment.value := leftConstant;
-            assignment.c := constant();
+            assignment.value := assignmentOperand;
+            assignment.o := operand();
         end;
 
         else
@@ -250,6 +261,10 @@ begin
 end;
 
 function goto_(): integer;
+
+var
+    c: integer;
+
 begin
     if stmtError then
         exit(CONSTANT_ERROR);
@@ -257,7 +272,13 @@ begin
     advance();
 
     if curToken^.id = token.GOTO_ then
-        exit(constant())
+    begin
+        c := constant();
+        if not stmtError then
+            symbols.appendLine(c);
+
+        exit(c);
+    end
     else
     begin
         hadStmtError();
@@ -299,12 +320,15 @@ begin
         begin
             operand.value := constantOperand;
             operand.n := curToken^.value;
+            symbols.appendConstant(operand.n);
         end;
 
         token.ID:
         begin
             operand.value := idOperand;
             operand.c := chr(curToken^.value);
+            //symbols.variables[operand.c] := true;
+            include(symbols.variables, operand.c);
         end;
 
         else
@@ -384,7 +408,7 @@ begin
     writeLn('--- line feed!');
     advance();
 
-    if curToken^.id <> token.LF then
+    if (curToken^.id <> token.LF) and (not isAtEnd()) then
     begin
         hadStmtError();
         writeLn('Expected LF, got ', token.idToStr(curToken^.id));
@@ -433,6 +457,11 @@ procedure synchronize();
 begin
     while (curToken^.id <> token.LF) and (not isAtEnd()) do
         advance();
+end;
+
+function currentLine(): integer;
+begin
+    currentLine := curToken^.line;
 end;
 
 end.

@@ -45,6 +45,9 @@ const
     START_TOKEN = 99;
     FINAL_TOKEN = 100;
 
+    INVALID_CONSTANT = 101;
+    INVALID_IDENTIFIER = 102;
+
     DEFAULT_CAPACITY = 8;
 
 type
@@ -139,9 +142,12 @@ begin
             idToStr := 'ERROR TOKEN';
         START_TOKEN:
             idToStr := 'START TOKEN';
-        
         FINAL_TOKEN:
             idToStr := 'FINAL TOKEN';
+        INVALID_CONSTANT:
+            idToStr := 'INVALID CONSTANT';
+        INVALID_IDENTIFIER:
+            idToStr := 'INVALID IDENTIFIER';
         else
             idToStr := sysutils.IntToStr(idValue);
     end;

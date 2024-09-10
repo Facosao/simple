@@ -31,14 +31,14 @@ type
     end;
 
     TPossibleAssignment = (
-        leftConstant,
+        assignmentOperand,
         assignmentAlgebraExpr,
         assignmentError
     );
 
     TAssignment = record
         case value: TPossibleAssignment of
-            leftConstant: (c: integer);
+            assignmentOperand: (o: TOperand);
             assignmentAlgebraExpr: (expr: TAlgebraExpr);
             assignmentError: ();
     end;
@@ -78,6 +78,8 @@ type
     TIfTuple = record
         ifBooleanExpr: TBooleanExpr;
         thenConstant: integer;
+        constantLine: integer;
+        constantColumn: integer;
     end;
 
     TReservedWord = record
@@ -86,7 +88,7 @@ type
             input: (inputId: char);
             let: (letTuple: TLetTuple);
             print: (printId: char);
-            gotoWord: (gotoConstant: integer);
+            gotoWord: (gotoConstant: integer; gotoLine: integer; gotoColumn: integer);
             if_: (ifTuple: TIfTuple);
             end_: ();
             wordError: ();
@@ -94,6 +96,7 @@ type
 
     TStatement = record
         lineNumber: integer;
+        sourceLine: integer;
         reservedWord: TReservedWord;
     end;
 

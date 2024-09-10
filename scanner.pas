@@ -15,6 +15,10 @@ function identifier(var source: text; c: charPtr): integer;
 
 implementation
 
+const
+    CONSTANT_ERROR = 32000;
+    IDENTIFIER_ERROR = 'E';
+
 var
     line: integer = 1;
     column: integer = 0;
@@ -55,19 +59,13 @@ begin
             end;
 
             '*':
-                token.append(tokens, token.newToken(
-                    token.PRODUCT, 0, line, column
-                ));
+                token.append(tokens, token.newToken(token.PRODUCT, 0, line, column));
 
             '/':
-                token.append(tokens, token.newToken(
-                    token.DIVISION, 0, line, column
-                ));
+                token.append(tokens, token.newToken(token.DIVISION, 0, line, column));
 
             '%':
-                token.append(tokens, token.newToken(
-                    token.MODULO, 0, line, column
-                ));
+                token.append(tokens, token.newToken(token.MODULO, 0, line, column));
 
             '!':
             begin
@@ -101,36 +99,23 @@ begin
                     '=':
                     begin
                         token.pop(tokens);
-                        token.append(tokens, token.newToken(
-                            token.EQUAL_EQUAL, 0, line, column
-                        ));
+                        token.append(tokens, token.newToken(token.EQUAL_EQUAL, 0, line, column));
                     end;
 
                     '!':
-                        token.append(tokens, token.newToken(
-                            token.BANG_EQUAL, 0, line, column
-                        ));
+                        token.append(tokens, token.newToken(token.BANG_EQUAL, 0, line, column));
 
                     '>':
                     begin
                         token.pop(tokens);
-                        token.append(tokens, token.newToken(
-                            token.GREATER_EQUAL, 0, line, column
-                        ));
+                        token.append(tokens, token.newToken(token.GREATER_EQUAL, 0, line, column));
                     end;
 
                     '<':
                     begin
                         token.pop(tokens);
-                        token.append(tokens, token.newToken(
-                            token.LESS_EQUAL, 0, line, column
-                        ));
+                        token.append(tokens, token.newToken(token.LESS_EQUAL, 0, line, column));
                     end;
-
-                    ' ':
-                        token.append(tokens, token.newToken(
-                            token.EQUAL, 0, line, column
-                        ));
                 end;
 
             '0'..'9':
@@ -143,12 +128,10 @@ begin
                 else
                     return := number(source, @c, false);
                 
-                token.append(tokens, token.newToken(
-                    token.CONSTANT,
-                    return,
-                    line,
-                    column
-                ));
+                if return = CONSTANT_ERROR then
+                    token.append(tokens, token.newToken(token.INVALID_CONSTANT, 0, line, column))
+                else
+                    token.append(tokens, token.newToken(token.CONSTANT, return, line, column));
             end;
 
             'a'..'z':
@@ -156,29 +139,25 @@ begin
                 return := identifier(source, @c);
 
                 if return = -1 then
-                    token.append(tokens, token.newToken(
-                        token.ID,
-                        ord(return),
-                        line,
-                        column
-                    ))
+                begin
+                    if c = IDENTIFIER_ERROR then
+                        token.append(tokens, token.newToken(token.INVALID_IDENTIFIER, 0, line, column))
+                    else
+                        token.append(tokens, token.newToken(token.ID, ord(c), line, column));
+                end
                 else
                     if return = token.REM then
                     begin
-                        token.append(tokens, token.newToken(
-                            token.REM, 0, line, column
-                        ));
+                        token.append(tokens, token.newToken(token.REM, 0, line, column));
                         
-                        while c <> #10 do
+                        while (c <> #10) and (c <> #26) do
                             read(source, c);
 
                         lineFeed();
                         continue;
                     end
                     else
-                        token.append(tokens, token.newToken(
-                            return, 0, line, column
-                        ));
+                        token.append(tokens, token.newToken(return, 0, line, column));
             end;
 
             #10: // LF
@@ -196,9 +175,8 @@ begin
         end;
 
         previous := #0;
-    end; 
+    end;
 
-    //token.append(tokens, token.newToken(token.FINAL_TOKEN, 0, line, column));
     scanTokens := tokens;
 end;
 
@@ -209,18 +187,15 @@ var
     temp: string[5] = '00000';
     bufPtr: integer = 2;
     i: integer;
-    //temp: char;
 
 begin
     if negative then
         buffer[1] := '-';
 
     repeat
-        //writeLn('n = ', c^, ', bufPtr = ', bufPtr, ', buffer = ', buffer);
         case c^ of
             '0'..'9':
             begin
-                //writeLn('valid digit!');
                 if bufPtr <= 5 then
                 begin
                     buffer[bufPtr] := c^;
@@ -229,7 +204,6 @@ begin
             end;
 
             else
-                //writeLn('break loop!');
                 if c^ = #10 then
                     lineFeed();
                 
@@ -254,8 +228,11 @@ begin
 
     writeLn('buffer = ', buffer);
     
-    //number := 5;
-    number := sysutils.strToInt(buffer);
+    if bufPtr > 6 then
+        number := CONSTANT_ERROR
+    else
+        number := sysutils.strToInt(buffer);
+    
     writeLn('number = ', number);
 end;
 
@@ -267,7 +244,6 @@ var
 
 begin
     repeat
-        //writeLn('buffer = ', buffer, ' bufPtr = ', bufPtr, ' c = ', c^);
         case c^ of
             'a'..'z':
             begin
@@ -287,7 +263,6 @@ begin
 
         read(source, c^);
         column += 1;
-    //until eof(source);
     until false;
 
     case buffer of
@@ -307,10 +282,10 @@ begin
             identifier := token.END_;
         else
             if bufPtr > 2 then
-                writeLn('Unexpected identifier ', buffer,
-                        ' at (', line, ', ', column, ')');
+                c^ := IDENTIFIER_ERROR
+            else
+                c^ := buffer[1];
             
-            c^ := buffer[1];
             identifier := -1;
     end;
     writeLn('buffer = ', buffer, ' identifier = ', identifier);
