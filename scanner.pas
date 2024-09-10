@@ -44,7 +44,7 @@ end;
 
 procedure lineFeed();
 begin
-    //writeLn('--- scanner line feed!');
+    //writeLn('--- inside line feed!');
     token.append(tokens, newToken(token.LF, 0));
     line += 1;
     column := 1;
@@ -68,7 +68,7 @@ begin
             columnBuffer += 1;
         end;
         
-        //writeLn('c = ', c);
+        //writeLn('c = ', c, ', ord(c) = ', ord(c));
         case c of
             '+':
                 token.append(tokens, newToken(token.PLUS, 0));
@@ -161,6 +161,7 @@ begin
 
             'a'..'z':
             begin
+                //writeLn('id case = ', c, ', id ord  = ', ord(c));
                 return := identifier(source, @c);
 
                 case return of
@@ -176,6 +177,7 @@ begin
                         while (c <> #10) and (c <> #26) do
                             read(source, c);
 
+                        //writeLn('---- rem line feed!');
                         lineFeed();
                         continue;
                     end;
@@ -189,7 +191,10 @@ begin
             end;
 
             #10: // LF
+            begin
+                //writeLn('---- main loop line feed!');
                 lineFeed();
+            end;
 
             #11, #13, #32: // CR, TAB, SPACE
                 repeat until true; // Empty statement
@@ -231,9 +236,6 @@ begin
             end;
 
             else
-                if c^ = #10 then
-                    lineFeed();
-                
                 break;
         end;
 
@@ -283,9 +285,6 @@ begin
             end;
 
             else
-                if c^ = #10 then
-                    lineFeed();
-
                 break;
         end;
 
