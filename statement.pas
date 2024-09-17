@@ -95,8 +95,8 @@ type
     end;
 
     TStatement = record
-        lineNumber: integer;
         sourceLine: integer;
+        lineNumber: integer;
         reservedWord: TReservedWord;
     end;
 

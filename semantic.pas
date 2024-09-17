@@ -77,6 +77,15 @@ begin
             'Line label ', lineLabel, ' was not declared.');
         end;
     end;
+
+    // Check if a END exists
+    for i := 0 to stmts.count - 1 do begin
+        if stmts.start[i].reservedWord.value = end_ then
+            exit();
+    end;
+
+    analyze := true;
+    writeLn('Semantic error: END statement not found in source file.');
 end;
 
 end.
