@@ -30,7 +30,7 @@ begin
             lastLine := stmts.start[i].lineNumber
         else
         begin
-            if stmts.start[i].lineNumber < lastLine then
+            if stmts.start[i].lineNumber <= lastLine then
             begin
                 analyze := true;
                 writeLn('Error at (', stmts.start[i].sourceLine,
