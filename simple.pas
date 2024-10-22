@@ -6,7 +6,8 @@ uses
     statement,
     parser,
     symbols,
-    semantic;
+    semantic,
+    objects;
 
 var
     sourceFile: text;
