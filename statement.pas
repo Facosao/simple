@@ -59,6 +59,12 @@ type
         rightOperand: TOperand;
     end;
 
+    TGoto = record
+        gotoConstant: integer;
+        gotoLine: integer;
+        gotoColumn: integer;
+    end;
+
     TPossibleWords = (
         rem,
         input,
@@ -70,26 +76,14 @@ type
         wordError
     );
 
-    TLetTuple = record
-        letId: char;
-        letAssignment: TAssignment;
-    end;
-
-    TIfTuple = record
-        ifBooleanExpr: TBooleanExpr;
-        thenConstant: integer;
-        constantLine: integer;
-        constantColumn: integer;
-    end;
-
     TReservedWord = record
         case value: TPossibleWords of
             rem: ();
             input: (inputId: char);
-            let: (letTuple: TLetTuple);
+            let: (letId: char; letAssignment: TAssignment);
             print: (printId: char);
-            gotoWord: (gotoConstant: integer; gotoLine: integer; gotoColumn: integer);
-            if_: (ifTuple: TIfTuple);
+            gotoWord: (gotoData: TGoto);
+            if_: (ifBooleanExpr: TBooleanExpr; thenData: TGoto);
             end_: ();
             wordError: ();
     end;

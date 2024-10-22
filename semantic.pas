@@ -48,16 +48,16 @@ begin
         case stmts.start[i].reservedWord.value of
             TPossibleWords.gotoWord:
             begin
-                lineLabel := stmts.start[i].reservedWord.gotoConstant;
-                targetLine := stmts.start[i].reservedWord.gotoLine;
-                targetColumn := stmts.start[i].reservedWord.gotoColumn;
+                lineLabel := stmts.start[i].reservedWord.gotoData.gotoConstant;
+                targetLine := stmts.start[i].reservedWord.gotoData.gotoLine;
+                targetColumn := stmts.start[i].reservedWord.gotoData.gotoColumn;
             end;
 
             TPossibleWords.if_:
             begin
-                lineLabel := stmts.start[i].reservedWord.ifTuple.thenConstant;
-                targetLine := stmts.start[i].reservedWord.ifTuple.constantLine;
-                targetColumn := stmts.start[i].reservedWord.ifTuple.constantColumn;
+                lineLabel := stmts.start[i].reservedWord.thenData.gotoConstant;
+                targetLine := stmts.start[i].reservedWord.thenData.gotoLine;
+                targetColumn := stmts.start[i].reservedWord.thenData.gotoColumn;
             end;
 
             else
@@ -66,9 +66,10 @@ begin
 
         found := false;
 
-        for j := 0 to symbols.linesCount - 1 do
-            if symbols.lines[j] = lineLabel then
+        for j := 0 to stmts.count - 1 do begin
+            if stmts.start[j].lineNumber = lineLabel then
                 found := true;
+        end;
 
         if not found then
         begin

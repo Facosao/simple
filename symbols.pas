@@ -8,14 +8,14 @@ type
 var
     variables: TPossibleIdentifiers;
     constants: array of integer;
-    lines: array of integer; // Redundant: Lines are part of a statement.
+    // lines: array of integer; // Redundant: Lines are part of a statement.
     constantsCount: integer;
     constantsCapacity: integer;
-    linesCount: integer;
-    linesCapacity: integer;
+    // linesCount: integer;
+    // linesCapacity: integer;
 
 procedure appendConstant(n: integer);
-procedure appendLine(l: integer);
+// procedure appendLine(l: integer);
 
 implementation
 
@@ -43,37 +43,11 @@ begin
     constantsCount += 1;
 end;
 
-procedure appendLine(l: integer);
-
-var
-    i: integer;
-
-begin
-    if linesCount > 0 then
-        for i := 0 to linesCount - 1 do
-            if lines[i] = l then
-                exit();
-
-    if linesCount >= linesCapacity then
-    begin
-        setLength(lines, linesCapacity * 2);
-        linesCapacity *= 2;
-    end;
-
-    lines[linesCount] := l;
-    linesCount += 1;
-end;
-
 initialization
 begin
     constantsCount := 0;
-    linesCount := 0;
-    
     constantsCapacity := DEFAULT_CAPACITY;
-    linesCapacity := DEFAULT_CAPACITY;
-
     setLength(constants, DEFAULT_CAPACITY);
-    setLength(lines, DEFAULT_CAPACITY);
 
     variables := [];
 end;

@@ -18,30 +18,37 @@ function parse(var _tokens: TTokenList): TStatementList;
 implementation
 
 const
-    RESERVED_WORD_ERROR: TReservedWord = (value: wordError);
+    RESERVED_WORD_ERROR: TReservedWord = (
+        value: wordError;
+        inputId: 'E';
+    );
 
     ID_ERROR: char = 'E';
 
     ALGEBRA_EXPR_ERROR: TAlgebraExpr = (
-        leftOperand: (value: operandError);
+        leftOperand: (value: operandError; n: 0);
         algebraExprOperator: algebraOperatorError;
-        rightOperand: (value: operandError)
+        rightOperand: (value: operandError; n: 0)
     );
 
     BOOLEAN_EXPR_ERROR: TBooleanExpr = (
-        leftOperand: (value: operandError);
+        leftOperand: (value: operandError; n: 0);
         booleanExprOperator: booleanOperatorError;
-        rightOperand: (value: operandError)
+        rightOperand: (value: operandError; n: 0);
     );
 
-    OPERAND_ERROR: TOperand = (value: operandError);
+    OPERAND_ERROR: TOperand = (value: operandError; n: 0);
 
     ALGEBRA_OPERATOR_ERROR: TAlgebraOperator = algebraOperatorError;
 
     BOOLEAN_OPERATOR_ERROR: TBooleanOperator = booleanOperatorError;
 
     ASSIGNMENT_ERROR: TAssignment = (
-        value: assignmentError
+        value: assignmentError;
+        o: (
+            value: operandError;
+            n: 0;
+        );
     );
 
 var
@@ -104,9 +111,7 @@ begin
     //writeLn('----- NEW STATEMENT! -----');
     addStatement.lineNumber := constant();
 
-    if not stmtError then
-        symbols.appendLine(addStatement.lineNumber)
-    else
+    if stmtError then
         // Skip ascending order semantic analysis
         addStatement.lineNumber := 9999;
 
@@ -157,8 +162,8 @@ begin
         token.LET:
         begin
             reservedWord.value := let;
-            reservedWord.letTuple.letId := id();
-            reservedWord.letTuple.letAssignment := assignment();
+            reservedWord.letId := id();
+            reservedWord.letAssignment := assignment();
         end;
 
         token.PRINT:
@@ -170,18 +175,18 @@ begin
         token.GOTO_:
         begin
             reservedWord.value := gotoWord;
-            reservedWord.gotoConstant := constant();
-            reservedWord.gotoLine := curToken^.line;
-            reservedWord.gotoColumn := curToken^.column;
+            reservedWord.gotoData.gotoConstant := constant();
+            reservedWord.gotoData.gotoLine := curToken^.line;
+            reservedWord.gotoData.gotoColumn := curToken^.column;
         end;
 
         token.IF_:
         begin
             reservedWord.value := if_;
-            reservedWord.ifTuple.ifBooleanExpr := booleanExpr();
-            reservedWord.ifTuple.thenConstant := goto_();
-            reservedWord.ifTuple.constantLine := curToken^.line;
-            reservedWord.ifTuple.constantColumn := curToken^.column;
+            reservedWord.ifBooleanExpr := booleanExpr();
+            reservedWord.thenData.gotoConstant := goto_();
+            reservedWord.thenData.gotoLine := curToken^.line;
+            reservedWord.thenData.gotoColumn := curToken^.column;
         end;
 
         token.END_:
