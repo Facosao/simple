@@ -7,18 +7,20 @@ uses
     statement,
     parser;
 
-// Returns 'true' if an error was found.
-function analyze(var stmts: TStatementList): boolean;
+var
+    hadError: boolean;
+
+procedure analyze(var stmts: TStatementList);
 
 implementation
 
-function analyze(var stmts: TStatementList): boolean;
+procedure analyze(var stmts: TStatementList);
 
 var
     lastLine, lineLabel, targetLine, targetColumn, i, j: integer;
     found: boolean;
 begin
-    analyze := false;
+    hadError := false;
 
     // Check if all line labels are in ascending order
     lastLine := 0;
@@ -32,7 +34,7 @@ begin
         begin
             if stmts.start[i].lineNumber <= lastLine then
             begin
-                analyze := true;
+                hadError := true;
                 writeLn('Error at (', stmts.start[i].sourceLine,
                 ', 1): Line label ', stmts.start[i].lineNumber,
                 ' is not in ascending order.');
@@ -73,7 +75,7 @@ begin
 
         if not found then
         begin
-            analyze := true;
+            hadError := true;
             writeLn('Error at (', targetLine, ', ', targetColumn, '): ',
             'Line label ', lineLabel, ' was not declared.');
         end;
@@ -85,7 +87,7 @@ begin
             exit();
     end;
 
-    analyze := true;
+    hadError := true;
     writeLn('Semantic error: END statement not found in source file.');
 end;
 

@@ -13,7 +13,8 @@ var
     sourceFile: text;
     tokens: TTokenList;
     stmts: TStatementList;
-    semanticError: boolean;
+    objectList: TBlockList;
+    // semanticError: boolean;
     //i: integer;
     //c: char;
 
@@ -52,15 +53,16 @@ begin
         //for i := 0 to symbols.linesCount - 1 do
         //    writeLn('line = ', symbols.lines[i]);
 
-        semanticError := semantic.analyze(stmts);
+        semantic.analyze(stmts);
         //writeLn('semanticError = ', semanticError);
 
-        if parser.hadError or semanticError then begin
+        if parser.hadError or semantic.hadError then begin
             write(#10);
             writeLn('Errors detected in source file.');
             writeLn('Compilation aborted.');
         end else begin
             writeLn('No errors detected in source file.');
+            objectList := generateObjects(stmts);
         end;
 
         close(sourceFile);

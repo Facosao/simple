@@ -53,19 +53,6 @@ type
         booleanOperatorError
     );
 
-    // if a <= b
-    // a - b < 0
-    // a - b = 0
-    // a - b
-
-    // load a
-    // sub b
-    // branchneg
-    // branchzero
-
-    // if a > b
-    // b - a < 0
-
     TBooleanExpr = record
         leftOperand: TOperand;
         booleanExprOperator: TBooleanOperator;

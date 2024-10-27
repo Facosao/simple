@@ -2,12 +2,7 @@ unit objects;
 
 interface
 
-uses
-    statement;
-
-// let a = b
-// +20--b
-// +21--a
+uses statement;
 
 const
     // I/O
@@ -35,15 +30,15 @@ const
 
     // Miscellaneous
     DEFAULT_CAPACITY = 8;
-    ARRAY_CAPACITY = 3;
+    ARRAY_CAPACITY = 5;
+    EMPTY_OPERAND: TOperand = (value: operandError; n: 0);
 
 type
     TAddressTarget = (constantAddress, idAddress, lineAddress);
 
     TObject = record
         instruction: integer;
-        address: integer;
-        addressTarget: TAddressTarget; 
+        opr: TOperand;
     end;
 
     TObjectArray = record
@@ -75,11 +70,6 @@ begin
     writeLn('Internal error: Unexpected ', message);
 end;
 
-function charToAddress(c: char): integer;
-begin
-    charToAddress := ord(c) - 97;
-end;
-
 procedure initializeArray(var obj: TObjectArray);
 begin
     obj.count := 0;
@@ -90,43 +80,28 @@ begin
     if objectArray.count < ARRAY_CAPACITY then begin
         objectArray.arr[objectArray.count] := obj;
         objectArray.count += 1;
-        arrayAdd := false;
+        exit(false);
     end;
     
     writeLn('Internal error: TObjectArray capacity was exceeded.');
+    writeLn('Count: ', objectArray.count);
     arrayAdd := true;
 end;
 
-function objectBuilder(instruction: integer; address: integer; addressTarget: TAddressTarget): TObject;
+function objectBuilder(instruction: integer; opr: TOperand): TObject;
 begin
     objectBuilder.instruction := instruction;
-    objectBuilder.address := address;
-    objectBuilder.addressTarget := addressTarget;
+    objectBuilder.opr := opr;
 end;
 
-function loadOperand(operand: TOperand): TObject;
+function newOperand(operandType: TPossibleOperands; num: integer; chr: char): TOperand;
 begin
-    loadOperand.instruction := INST_LOAD;
-
-    case operand.value of
+    newOperand.value := operandType;
+    case operandType of
         TPossibleOperands.constantOperand:
-        begin
-            loadOperand.address := operand.n;
-            loadOperand.addressTarget := constantAddress;
-        end;
-
+            newOperand.n := num;
         TPossibleOperands.idOperand:
-        begin
-            loadOperand.address := charToAddress(operand.c);
-            loadOperand.addressTarget := idAddress;
-        end;
-
-        TPossibleOperands.operandError:
-        begin
-            internalError('operandError');
-            loadOperand.address := 0;
-            loadOperand.addressTarget := constantAddress;
-        end;
+            newOperand.c := chr;
     end;
 end;
 
@@ -140,28 +115,24 @@ var
 begin
     compile.lineNumber := stmt.lineNumber;
     compile.startAddress := NO_ADDRESS;
-    // compile.count := 0;
+    initializeArray(compile.objectArray);
 
     case stmt.reservedWord.value of
         // rem: ();
         statement.TPossibleWords.rem:
         begin
-            // Create a empty object:
-            // the linker may need the line number from this TObject.
-            arrayAdd(compile.objectArray, objectBuilder(INST_NOOP, 0, lineAddress));
+            // Create a empty object: the linker may
+            // need the line number from this TObject.
+            arrayAdd(compile.objectArray, objectBuilder(INST_NOOP, EMPTY_OPERAND));
         end;
 
         // input: (inputId: char);
         statement.TPossibleWords.input:
         begin
-            newObject.instruction := INST_READ;
-            newObject.address := charToAddress(stmt.reservedWord.inputId);
-            newObject.addressTarget := idAddress;
-
-            // compile.objectArray[compile.count] := newObject;
-            // compile.count += 1;
-
-            arrayAdd(compile.objectArray, newObject);
+            arrayAdd(compile.objectArray, objectBuilder(
+                INST_READ,
+                newOperand(idOperand, 0, stmt.reservedWord.inputId)
+            ));
         end;
 
         // let: (letId: char; letAssignment: TAssignment);
@@ -170,14 +141,20 @@ begin
             case stmt.reservedWord.letAssignment.value of
                 TPossibleAssignment.assignmentOperand:
                 begin
-                    arrayAdd(compile.objectArray, loadOperand(stmt.reservedWord.letAssignment.o));
+                    arrayAdd(compile.objectArray, objectBuilder(
+                        INST_LOAD,
+                        stmt.reservedWord.letAssignment.o
+                    ));
                 end;
 
                 statement.TPossibleAssignment.assignmentAlgebraExpr:
                 begin
-                    arrayAdd(compile.objectArray, loadOperand(stmt.reservedWord.letAssignment.expr.leftOperand));
-                    newObject := loadOperand(stmt.reservedWord.letAssignment.expr.rightOperand);
+                    arrayAdd(compile.objectArray, objectBuilder(
+                        INST_LOAD,
+                        stmt.reservedWord.letAssignment.expr.leftOperand
+                    ));
 
+                    newObject.opr := stmt.reservedWord.letAssignment.expr.rightOperand;
                     case stmt.reservedWord.letAssignment.expr.algebraExprOperator of
                         TAlgebraOperator.plus:
                             newObject.instruction := INST_ADD;
@@ -200,8 +177,7 @@ begin
 
                     arrayAdd(compile.objectArray, objectBuilder(
                         INST_STORE,
-                        charToAddress(stmt.reservedWord.letId),
-                        idAddress
+                        newOperand(idOperand, 0, stmt.reservedWord.letId)
                     ));
                 end;
 
@@ -215,8 +191,7 @@ begin
         begin
             arrayAdd(compile.objectArray, objectBuilder(
                 INST_WRITE,
-                charToAddress(stmt.reservedWord.printId),
-                idAddress
+                newOperand(idOperand, 0, stmt.reservedWord.printId)
             ));
         end;
 
@@ -225,8 +200,7 @@ begin
         begin
             arrayAdd(compile.objectArray, objectBuilder(
                 INST_BRANCH,
-                stmt.reservedWord.gotoData.gotoConstant,
-                lineAddress
+                newOperand(constantOperand, stmt.reservedWord.gotoData.gotoConstant, 'E')
             ));
         end;
 
@@ -247,60 +221,48 @@ begin
                     internalError('booleanOperatorError');
             end;
 
-            arrayAdd(compile.objectArray, loadOperand(firstOperand));
-            
-            newObject := loadOperand(secondOperand);
-            newObject.instruction := INST_SUBTRACT;
-            arrayAdd(compile.objectArray, newObject);
+            arrayAdd(compile.objectArray, objectBuilder(INST_LOAD, firstOperand));
+            arrayAdd(compile.objectArray, objectBuilder(INST_SUBTRACT, secondOperand));
 
             case stmt.reservedWord.ifBooleanExpr.booleanExprOperator of
                 TBooleanOperator.equality:
                     arrayAdd(compile.objectArray, objectBuilder(
                         INST_BRANCHZERO,
-                        stmt.reservedWord.thenData.gotoConstant,
-                        lineAddress
+                        newOperand(constantOperand, stmt.reservedWord.thenData.gotoConstant, 'E')
                     ));
 
                 TBooleanOperator.inequality:
                 begin
                     arrayAdd(compile.objectArray, objectBuilder(
                         INST_BRANCHNEG,
-                        stmt.reservedWord.thenData.gotoConstant,
-                        lineAddress
+                        newOperand(constantOperand, stmt.reservedWord.thenData.gotoConstant, 'E')
                     ));
 
-                    arrayAdd(compile.objectArray, loadOperand(secondOperand));
-
-                    newObject := loadOperand(firstOperand);
-                    newObject.instruction := INST_SUBTRACT;
-                    arrayAdd(compile.objectArray, newObject);
+                    arrayAdd(compile.objectArray, objectBuilder(INST_LOAD, secondOperand)); 
+                    arrayAdd(compile.objectArray, objectBuilder(INST_SUBTRACT, firstOperand));
 
                     arrayAdd(compile.objectArray, objectBuilder(
                         INST_BRANCHNEG,
-                        stmt.reservedWord.thenData.gotoConstant,
-                        lineAddress
+                        newOperand(constantOperand, stmt.reservedWord.thenData.gotoConstant, 'E')
                     ));
                 end;
 
                 TBooleanOperator.less, TBooleanOperator.greater:
                     arrayAdd(compile.objectArray, objectBuilder(
                         INST_BRANCHNEG,
-                        stmt.reservedWord.thenData.gotoConstant,
-                        lineAddress
+                        newOperand(constantOperand, stmt.reservedWord.thenData.gotoConstant, 'E')
                     ));
 
                 TBooleanOperator.lessEqual, TBooleanOperator.greaterEqual:
                 begin
                     arrayAdd(compile.objectArray, objectBuilder(
                         INST_BRANCHNEG,
-                        stmt.reservedWord.thenData.gotoConstant,
-                        lineAddress
+                        newOperand(constantOperand, stmt.reservedWord.thenData.gotoConstant, 'E')
                     ));
 
                     arrayAdd(compile.objectArray, objectBuilder(
                         INST_BRANCHZERO,
-                        stmt.reservedWord.thenData.gotoConstant,
-                        lineAddress
+                        newOperand(constantOperand, stmt.reservedWord.thenData.gotoConstant, 'E')
                     ));
                 end;
             end;
@@ -309,11 +271,7 @@ begin
         // end_: ();
         statement.TPossibleWords.end_:
         begin
-            arrayAdd(compile.objectArray, objectBuilder(
-                INST_HALT,
-                0,
-                lineAddress
-            ));
+            arrayAdd(compile.objectArray, objectBuilder(INST_HALT, EMPTY_OPERAND));
         end;
 
         // wordError: ();

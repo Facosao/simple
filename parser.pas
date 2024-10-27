@@ -7,9 +7,6 @@ uses
     statement,
     symbols;
 
-const
-    CONSTANT_ERROR: integer = -1;
-
 var
     hadError: boolean;
 
@@ -24,6 +21,8 @@ const
     );
 
     ID_ERROR: char = 'E';
+
+    CONSTANT_ERROR: integer = -1;
 
     ALGEBRA_EXPR_ERROR: TAlgebraExpr = (
         leftOperand: (value: operandError; n: 0);
