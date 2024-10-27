@@ -290,7 +290,6 @@ begin
 end;
 
 procedure append(var list: TBlockList; blck: TBlock);
-
 begin
     //writeLn('capacity = ', list.capacity);
     if list.count >= list.capacity then

@@ -79,7 +79,6 @@ begin
 end;
 
 procedure append(var list: TTokenList; token: TToken);
-
 begin
     //writeLn('capacity = ', list.capacity);
     if list.count >= list.capacity then

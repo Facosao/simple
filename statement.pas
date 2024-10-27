@@ -114,7 +114,6 @@ begin
 end;
 
 procedure append(var list: TStatementList; stmt: TStatement);
-
 begin
     //writeLn('capacity = ', list.capacity);
     if list.count >= list.capacity then
