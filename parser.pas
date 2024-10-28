@@ -98,6 +98,8 @@ begin
         
         if stmtError then
             synchronize();
+        // else
+        //     statement.append(statements, newStmt); // Why not do this?
         
         stmtError := false;
     until isAtEnd();
@@ -132,6 +134,7 @@ begin
     begin
         constant := curToken^.value;
         // insert value into line number array
+        symbols.appendConstant(curToken^.value);
     end
     else
     begin
@@ -223,7 +226,7 @@ begin
         //symbols.variables[id] := true;
         //writeLn('---- DEBUG VALUE   : ', curToken^.value);
         //writeLn('---- DEBUG VARIABLE: ', chr(curToken^.value));
-        include(symbols.variables, chr(curToken^.value));
+        symbols.variables[chr(curToken^.value)] := symbols.UNKNOWN_ADDRESS;
         //symbols.variables += [id];
     end
     else
@@ -332,7 +335,8 @@ begin
             operand.value := idOperand;
             operand.c := chr(curToken^.value);
             //symbols.variables[operand.c] := true;
-            include(symbols.variables, operand.c);
+            //include(symbols.variables, operand.c);
+            symbols.variables[operand.c] := symbols.UNKNOWN_ADDRESS;
         end;
 
         else

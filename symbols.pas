@@ -2,25 +2,25 @@ unit symbols;
 
 interface
 
-type
-    TPossibleIdentifiers = set of 'a' .. 'z';
+const
+    UNUSED_VARIABLE = 16000;
+    UNKNOWN_ADDRESS = 17000;
 
 var
-    variables: TPossibleIdentifiers;
+    variables: array['a'..'z'] of integer;
     constants: array of integer;
-    // lines: array of integer; // Redundant: Lines are part of a statement.
     constantsCount: integer;
     constantsCapacity: integer;
-    // linesCount: integer;
-    // linesCapacity: integer;
 
 procedure appendConstant(n: integer);
-// procedure appendLine(l: integer);
 
 implementation
 
 const
     DEFAULT_CAPACITY = 8;
+
+var
+    c: char;
 
 procedure appendConstant(n: integer);
 
@@ -49,7 +49,9 @@ begin
     constantsCapacity := DEFAULT_CAPACITY;
     setLength(constants, DEFAULT_CAPACITY);
 
-    variables := [];
+    for c := 'a' to 'z' do begin
+        variables[c] := UNUSED_VARIABLE;
+    end;
 end;
 
 end.
