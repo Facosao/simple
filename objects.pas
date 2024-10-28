@@ -58,12 +58,13 @@ type
         capacity: integer;
     end;
 
-function newList(): TBlockList;
-procedure append(var list: TBlockList; blck: TBlock);
-procedure pop(var list: TBlockList);
 function generateObjects(var stmtList: TStatementList): TBlockList;
 
 implementation
+
+function newList(): TBlockList; forward;
+procedure append(var list: TBlockList; blck: TBlock); forward;
+procedure pop(var list: TBlockList); forward;
 
 procedure internalError(message: string);
 begin
