@@ -50,14 +50,14 @@ begin
         case stmts.start[i].reservedWord.value of
             TPossibleWords.gotoWord:
             begin
-                lineLabel := stmts.start[i].reservedWord.gotoData.gotoConstant;
+                lineLabel := stmts.start[i].reservedWord.gotoData.gotoOpr.n;
                 targetLine := stmts.start[i].reservedWord.gotoData.gotoLine;
                 targetColumn := stmts.start[i].reservedWord.gotoData.gotoColumn;
             end;
 
             TPossibleWords.if_:
             begin
-                lineLabel := stmts.start[i].reservedWord.thenData.gotoConstant;
+                lineLabel := stmts.start[i].reservedWord.thenData.gotoOpr.n;
                 targetLine := stmts.start[i].reservedWord.thenData.gotoLine;
                 targetColumn := stmts.start[i].reservedWord.thenData.gotoColumn;
             end;

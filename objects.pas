@@ -95,16 +95,16 @@ begin
     objectBuilder.opr := opr;
 end;
 
-function newOperand(operandType: TPossibleOperands; num: integer; chr: char): TOperand;
-begin
-    newOperand.value := operandType;
-    case operandType of
-        TPossibleOperands.constantOperand:
-            newOperand.n := num;
-        TPossibleOperands.idOperand:
-            newOperand.c := chr;
-    end;
-end;
+// function newOperand(operandType: TPossibleOperands; num: integer; chr: char): TOperand;
+// begin
+//     newOperand.value := operandType;
+//     case operandType of
+//         TPossibleOperands.constantOperand:
+//             newOperand.n := num;
+//         TPossibleOperands.idOperand:
+//             newOperand.c := chr;
+//     end;
+// end;
 
 function compile(stmt: TStatement): TBlock;
 
@@ -127,16 +127,16 @@ begin
             arrayAdd(compile.objectArray, objectBuilder(INST_NOOP, EMPTY_OPERAND));
         end;
 
-        // input: (inputId: char);
+        // input: (inputOpr: TOperand);
         statement.TPossibleWords.input:
         begin
             arrayAdd(compile.objectArray, objectBuilder(
                 INST_READ,
-                newOperand(idOperand, 0, stmt.reservedWord.inputId)
+                stmt.reservedWord.inputOpr
             ));
         end;
 
-        // let: (letId: char; letAssignment: TAssignment);
+        // let: (letOpr: TOperand; letAssignment: TAssignment);
         statement.TPossibleWords.let:
         begin
             case stmt.reservedWord.letAssignment.value of
@@ -178,7 +178,7 @@ begin
 
                     arrayAdd(compile.objectArray, objectBuilder(
                         INST_STORE,
-                        newOperand(idOperand, 0, stmt.reservedWord.letId)
+                        stmt.reservedWord.letOpr
                     ));
                 end;
 
@@ -187,12 +187,12 @@ begin
             end;
         end;
 
-        // print: (printId: char);
+        // print: (printOpr: TOperand);
         statement.TPossibleWords.print:
         begin
             arrayAdd(compile.objectArray, objectBuilder(
                 INST_WRITE,
-                newOperand(idOperand, 0, stmt.reservedWord.printId)
+                stmt.reservedWord.printOpr
             ));
         end;
 
@@ -201,7 +201,7 @@ begin
         begin
             arrayAdd(compile.objectArray, objectBuilder(
                 INST_BRANCH,
-                newOperand(constantOperand, stmt.reservedWord.gotoData.gotoConstant, 'E')
+                stmt.reservedWord.gotoData.gotoOpr
             ));
         end;
 
@@ -229,14 +229,14 @@ begin
                 TBooleanOperator.equality:
                     arrayAdd(compile.objectArray, objectBuilder(
                         INST_BRANCHZERO,
-                        newOperand(constantOperand, stmt.reservedWord.thenData.gotoConstant, 'E')
+                        stmt.reservedWord.thenData.gotoOpr
                     ));
 
                 TBooleanOperator.inequality:
                 begin
                     arrayAdd(compile.objectArray, objectBuilder(
                         INST_BRANCHNEG,
-                        newOperand(constantOperand, stmt.reservedWord.thenData.gotoConstant, 'E')
+                        stmt.reservedWord.thenData.gotoOpr
                     ));
 
                     arrayAdd(compile.objectArray, objectBuilder(INST_LOAD, secondOperand)); 
@@ -244,26 +244,26 @@ begin
 
                     arrayAdd(compile.objectArray, objectBuilder(
                         INST_BRANCHNEG,
-                        newOperand(constantOperand, stmt.reservedWord.thenData.gotoConstant, 'E')
+                        stmt.reservedWord.thenData.gotoOpr
                     ));
                 end;
 
                 TBooleanOperator.less, TBooleanOperator.greater:
                     arrayAdd(compile.objectArray, objectBuilder(
                         INST_BRANCHNEG,
-                        newOperand(constantOperand, stmt.reservedWord.thenData.gotoConstant, 'E')
+                        stmt.reservedWord.thenData.gotoOpr
                     ));
 
                 TBooleanOperator.lessEqual, TBooleanOperator.greaterEqual:
                 begin
                     arrayAdd(compile.objectArray, objectBuilder(
                         INST_BRANCHNEG,
-                        newOperand(constantOperand, stmt.reservedWord.thenData.gotoConstant, 'E')
+                        stmt.reservedWord.thenData.gotoOpr
                     ));
 
                     arrayAdd(compile.objectArray, objectBuilder(
                         INST_BRANCHZERO,
-                        newOperand(constantOperand, stmt.reservedWord.thenData.gotoConstant, 'E')
+                        stmt.reservedWord.thenData.gotoOpr
                     ));
                 end;
             end;

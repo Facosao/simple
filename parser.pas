@@ -17,10 +17,10 @@ implementation
 const
     RESERVED_WORD_ERROR: TReservedWord = (
         value: wordError;
-        inputId: 'E';
+        inputOpr: (value: operandError; n: 0);
     );
 
-    ID_ERROR: char = 'E';
+    ID_ERROR: TOperand = (value: idOperand; c: 'E');
 
     CONSTANT_ERROR: integer = -1;
 
@@ -68,9 +68,9 @@ function currentLine(): integer; forward;
 // AST functions
 function addStatement(): TStatement; forward;
 function constant(): integer; forward;
-function id(): char; forward;
+function id(): TOperand; forward;
 function reservedWord(): TReservedWord; forward;
-function goto_(): integer; forward;
+function goto_(): TOperand; forward;
 function assignment(): TAssignment; forward;
 function algebraExpr(): TAlgebraExpr; forward;
 function booleanExpr(): TBooleanExpr; forward;
@@ -142,6 +142,10 @@ begin
 end;
 
 function reservedWord(): TReservedWord;
+
+var
+    tempOperand: TOperand;
+
 begin
     if stmtError then
         exit(RESERVED_WORD_ERROR);
@@ -155,26 +159,30 @@ begin
         token.INPUT:
         begin
             reservedWord.value := input;
-            reservedWord.inputId := id();
+            reservedWord.inputOpr := id();
         end;
 
         token.LET:
         begin
             reservedWord.value := let;
-            reservedWord.letId := id();
+            reservedWord.letOpr := id();
             reservedWord.letAssignment := assignment();
         end;
 
         token.PRINT:
         begin
             reservedWord.value := print;
-            reservedWord.printId := id();
+            reservedWord.printOpr := id();
         end;
         
         token.GOTO_:
         begin
             reservedWord.value := gotoWord;
-            reservedWord.gotoData.gotoConstant := constant();
+
+            tempOperand.value := constantOperand;
+            tempOperand.n := constant();
+
+            reservedWord.gotoData.gotoOpr := tempOperand;
             reservedWord.gotoData.gotoLine := curToken^.line;
             reservedWord.gotoData.gotoColumn := curToken^.column;
         end;
@@ -182,8 +190,9 @@ begin
         token.IF_:
         begin
             reservedWord.value := if_;
+
             reservedWord.ifBooleanExpr := booleanExpr();
-            reservedWord.thenData.gotoConstant := goto_();
+            reservedWord.thenData.gotoOpr := goto_();
             reservedWord.thenData.gotoLine := curToken^.line;
             reservedWord.thenData.gotoColumn := curToken^.column;
         end;
@@ -200,7 +209,7 @@ begin
         exit(RESERVED_WORD_ERROR);
 end;
 
-function id(): char;
+function id(): TOperand;
 begin
     if stmtError then
         exit(ID_ERROR);
@@ -209,7 +218,8 @@ begin
 
     if curToken^.id = token.ID then
     begin
-        id := chr(curToken^.value);
+        id.value := idOperand;
+        id.c := chr(curToken^.value);
         //symbols.variables[id] := true;
         //writeLn('---- DEBUG VALUE   : ', curToken^.value);
         //writeLn('---- DEBUG VARIABLE: ', chr(curToken^.value));
@@ -259,27 +269,25 @@ begin
     
 end;
 
-function goto_(): integer;
+function goto_(): TOperand;
 
 var
-    c: integer;
+    temp: TOperand;
 
 begin
     if stmtError then
-        exit(CONSTANT_ERROR);
+        exit(OPERAND_ERROR);
     //writeLn('--- goto!');
     advance();
 
-    if curToken^.id = token.GOTO_ then
-    begin
-        c := constant();
-        exit(c);
-    end
-    else
-    begin
+    if curToken^.id = token.GOTO_ then begin
+        temp.value := constantOperand;
+        temp.n := constant();
+        exit(temp);
+    end else begin
         hadStmtError();
         writeLn('Expected GOTO, got ', token.idToStr(curToken^.id));
-        exit(CONSTANT_ERROR);
+        exit(OPERAND_ERROR);
     end;
 end;
 

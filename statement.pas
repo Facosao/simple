@@ -60,7 +60,7 @@ type
     end;
 
     TGoto = record
-        gotoConstant: integer;
+        gotoOpr: TOperand;
         gotoLine: integer;
         gotoColumn: integer;
     end;
@@ -79,9 +79,9 @@ type
     TReservedWord = record
         case value: TPossibleWords of
             rem: ();
-            input: (inputId: char);
-            let: (letId: char; letAssignment: TAssignment);
-            print: (printId: char);
+            input: (inputOpr: TOperand);
+            let: (letOpr: TOperand; letAssignment: TAssignment);
+            print: (printOpr: TOperand);
             gotoWord: (gotoData: TGoto);
             if_: (ifBooleanExpr: TBooleanExpr; thenData: TGoto);
             end_: ();
