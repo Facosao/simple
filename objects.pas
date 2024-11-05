@@ -58,7 +58,7 @@ type
         capacity: integer;
     end;
 
-function generateObjects(var stmtList: TStatementList): TBlockList;
+function generateBlocks(var stmtList: TStatementList): TBlockList;
 
 implementation
 
@@ -309,15 +309,15 @@ begin
         list.count -= 1;
 end;
 
-function generateObjects(var stmtList: TStatementList): TBlockList;
+function generateBlocks(var stmtList: TStatementList): TBlockList;
 
 var
     i: integer;    
 
 begin
-    generateObjects := newList();
+    generateBlocks := newList();
     for i := 0 to stmtList.count - 1 do
-        append(generateObjects, compile(stmtList.start[i]));
+        append(generateBlocks, compile(stmtList.start[i]));
 end;
 
 end.

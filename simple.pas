@@ -7,13 +7,14 @@ uses
     parser,
     symbols,
     semantic,
-    objects;
+    objects,
+    linker;
 
 var
     sourceFile: text;
     tokens: TTokenList;
     stmts: TStatementList;
-    objectList: TBlockList;
+    blockList: TBlockList;
     // semanticError: boolean;
     //i: integer;
     //c: char;
@@ -62,7 +63,7 @@ begin
             writeLn('Compilation aborted.');
         end else begin
             writeLn('No errors detected in source file.');
-            objectList := generateObjects(stmts);
+            blockList := generateBlocks(stmts);
         end;
 
         close(sourceFile);
