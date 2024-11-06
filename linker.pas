@@ -8,7 +8,6 @@ uses
     objects;
 
 const
-    NO_INSTRUCTION = -1;
     INST_CONST = 19000;
     INST_VAR = 19001;
 
@@ -120,7 +119,10 @@ begin
 
                         operandError:
                         begin
-                            writeLn('Internal error: Linker operandError.');
+                            append(instList, newInstruction(
+                                blocks.start[i].objectArray.arr[j].instruction,
+                                0
+                            ));
                         end;
                     end;
                 end;
@@ -138,7 +140,7 @@ begin
 
     // -- Write +0000 for variables
     for c := 'a' to 'z' do begin
-        if symbols.variables[c] <> symbols.UNKNOWN_ADDRESS then
+        if symbols.variables[c] <> symbols.UNUSED_VARIABLE then
             append(instList, newInstruction(INST_VAR, 0));
     end;
 
@@ -153,6 +155,7 @@ end;
 
 function findAddress(var blocks: TBlockList; gotoTarget: TOperand): integer;
 begin
+    writeLn('TODO: Implement linker.findAddress!!!');
     findAddress := 1;
 end;
 

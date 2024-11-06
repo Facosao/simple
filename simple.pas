@@ -8,20 +8,22 @@ uses
     symbols,
     semantic,
     objects,
-    linker;
+    linker,
+    assemble;
 
 var
-    sourceFile: text;
+    sourceFile, outputFile: text;
     tokens: TTokenList;
     stmts: TStatementList;
     blockList: TBlockList;
+    instructionList: TInstructionList;
     // semanticError: boolean;
     //i: integer;
     //c: char;
 
 begin
-    if paramCount() <> 1 then begin
-        writeLn('Usage: ./simple [file_name]');
+    if paramCount() <> 2 then begin
+        writeLn('Usage: ./simple [input_file_name] [output_file_name]');
         exit();
     end else begin
         assign(sourceFile, paramStr(1));
@@ -64,6 +66,12 @@ begin
         end else begin
             writeLn('No errors detected in source file.');
             blockList := generateBlocks(stmts);
+            instructionList := link(blockList);
+
+            assign(outputFile, paramStr(2));
+            rewrite(outputFile);
+            assemble.writeFile(outputFile, instructionList);
+            close(outputFile);
         end;
 
         close(sourceFile);

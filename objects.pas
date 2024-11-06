@@ -146,6 +146,10 @@ begin
                         INST_LOAD,
                         stmt.reservedWord.letAssignment.o
                     ));
+                    arrayAdd(compile.objectArray, objectBuilder(
+                        INST_STORE,
+                        stmt.reservedWord.letOpr
+                    ));
                 end;
 
                 statement.TPossibleAssignment.assignmentAlgebraExpr:

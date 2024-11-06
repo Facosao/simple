@@ -134,7 +134,7 @@ begin
     begin
         constant := curToken^.value;
         // insert value into line number array
-        symbols.appendConstant(curToken^.value);
+        // symbols.appendConstant(curToken^.value);
     end
     else
     begin
