@@ -154,9 +154,18 @@ begin
 end;
 
 function findAddress(var blocks: TBlockList; gotoTarget: TOperand): integer;
+
+var
+    i: integer;
+
 begin
-    writeLn('TODO: Implement linker.findAddress!!!');
-    findAddress := 1;
+    // writeLn('TODO: Implement linker.findAddress!!!');
+    // findAddress := 1;
+
+    for i := 0 to blocks.count - 1 do begin
+        if blocks.start[i].lineNumber = gotoTarget.n then
+            exit(blocks.start[i].startAddress);
+    end;
 end;
 
 function findConstantIndex(constant: integer): integer;

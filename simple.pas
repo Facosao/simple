@@ -1,8 +1,8 @@
 program simple;
 
 uses
-    scanner,
     token,
+    scanner,
     statement,
     parser,
     symbols,
