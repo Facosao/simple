@@ -5,9 +5,12 @@ interface
 const
     UNUSED_VARIABLE = 16000;
     UNKNOWN_ADDRESS = 17000;
+    UNINITIALIZED_VARIABLE = 18000;
+    INITIALIZED_VARIABLE = 22000;
 
 var
     variables: array['a'..'z'] of integer;
+    variablesInitialization: array['a'..'z'] of integer;
     constants: array of integer;
     constantsCount: integer;
     constantsCapacity: integer;
@@ -28,6 +31,7 @@ var
     i: integer;
 
 begin
+    writeLn('Recieved constant: ', n);
     if constantsCount > 0 then
         for i := 0 to constantsCount - 1 do
             if constants[i] = n then
@@ -51,6 +55,7 @@ begin
 
     for c := 'a' to 'z' do begin
         variables[c] := UNUSED_VARIABLE;
+        variablesInitialization[c] := UNINITIALIZED_VARIABLE;
     end;
 end;
 

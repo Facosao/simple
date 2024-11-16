@@ -21,7 +21,7 @@ var
 
 begin
     leadingZeros := '+0000';
-    size := sysutils.strToInt(input);
+    size := Length(input);
 
     if input[1] = '-' then begin
         isNegative := true;
@@ -32,11 +32,19 @@ begin
     end;
     
     for i := 0 to size - 1 do begin
-        leadingZeros[6 - size + i] := input[start + i]
+        leadingZeros[6 - size + (start - 1) + i] := input[start + i]
     end;
 
     if isNegative then
         leadingZeros[1] := '-';
+end;
+
+function min(a: integer; b: integer): integer;
+begin
+    if a < b then
+        min := a
+    else
+        min := b;
 end;
 
 procedure writeFile(var outputFile: text; var instructionList: TInstructionList);
@@ -44,38 +52,51 @@ procedure writeFile(var outputFile: text; var instructionList: TInstructionList)
 var
     buffer: string[5];
     wordBuffer: string[2];
-
-    i, j: integer;
+    i: integer;
 
 begin
-    for i := 0 to instructionList.count - 1 do begin
+    for i := 0 to min(instructionList.count - 1, 99) do begin
         buffer := '+0000';
         
         case instructionList.start[i].instruction of
             linker.INST_VAR:
-                repeat until true; // Empty instruction
+            begin
+                buffer := sysutils.IntToStr(instructionList.start[i].operand);
+                buffer := leadingZeros(buffer);
+            end;
 
             linker.INST_CONST:
             begin
                 // Figure out if one can read string[0] to figure out its size
+                writeLn('Writing constant: ', instructionList.start[i].operand);
+                writeLn('buffer = ', buffer);
                 buffer := sysutils.IntToStr(abs(instructionList.start[i].operand));
+                writeLn('buffer = ', buffer);
                 buffer := leadingZeros(buffer);
+                writeLn('buffer = ', buffer);
                 
                 if instructionList.start[i].operand < 0 then
                     buffer[1] := '-';
             end;
 
-            else
+            else // Actual valid executable instruction
             begin
+                // Instruction itself, whose value is always >= 10 (no leading zeros)
                 wordBuffer := '00';
                 wordBuffer := sysutils.IntToStr(instructionList.start[i].instruction);
                 buffer[2] := wordBuffer[1];
                 buffer[3] := wordBuffer[2];
                 
+                // Instruction operand, which in rare cases may be < 10
+                // May require a leading zero
                 wordBuffer := '00';
                 wordBuffer := sysutils.IntToStr(instructionList.start[i].operand);
-                buffer[4] := wordBuffer[1];
-                buffer[5] := wordBuffer[2];
+                if Length(wordBuffer) = 1 then
+                    buffer[5] := wordBuffer[1]
+                else begin
+                    buffer[4] := wordBuffer[1];
+                    buffer[5] := wordBuffer[2];
+                end;
             end;
         end;
 

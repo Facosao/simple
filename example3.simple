@@ -1,0 +1,7 @@
+5 input b
+10 let a = 10
+20 if a != 10 goto 50
+30 let a = a + 1
+40 goto 20
+50 print a
+60 end

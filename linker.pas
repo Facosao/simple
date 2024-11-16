@@ -85,15 +85,27 @@ begin
                 INST_NOOP:
                     continue;
 
+                INST_HALT:
+                    append(instList, newInstruction(
+                        INST_HALT,
+                        0
+                    ));
+
                 INST_BRANCH, INST_BRANCHNEG, INST_BRANCHZERO:
                 begin
-                    append(instList, newInstruction(
-                        blocks.start[i].objectArray.arr[j].instruction,
-                        findAddress(
-                            blocks,
-                            blocks.start[i].objectArray.arr[j].opr
-                        )
-                    ));
+                    if blocks.start[i].objectArray.arr[j].opr.n = INEQUALITY_OPERAND.n then
+                        append(instList, newInstruction(
+                            blocks.start[i].objectArray.arr[j].instruction,
+                            blocks.start[i].startAddress + 4    
+                        ))
+                    else
+                        append(instList, newInstruction(
+                            blocks.start[i].objectArray.arr[j].instruction,
+                            findAddress(
+                                blocks,
+                                blocks.start[i].objectArray.arr[j].opr
+                            )
+                        ));
                 end;
 
                 else
@@ -118,12 +130,7 @@ begin
                         end;
 
                         operandError:
-                        begin
-                            append(instList, newInstruction(
-                                blocks.start[i].objectArray.arr[j].instruction,
-                                0
-                            ));
-                        end;
+                            writeLn('Internal error: linker operand error.');
                     end;
                 end;
             end;
@@ -138,10 +145,21 @@ begin
         append(instList, newInstruction(INST_CONST, symbols.constants[i]));
     end;
 
-    // -- Write +0000 for variables
+    // -- Write the initial value for variables
     for c := 'a' to 'z' do begin
         if symbols.variables[c] <> symbols.UNUSED_VARIABLE then
-            append(instList, newInstruction(INST_VAR, 0));
+            case symbols.variablesInitialization[c] of
+                UNINITIALIZED_VARIABLE, INITIALIZED_VARIABLE:
+                    append(instList, newInstruction(
+                        INST_VAR,
+                        0
+                    ))
+                else
+                    append(instList, newInstruction(
+                        INST_VAR,
+                        symbols.variablesInitialization[c]
+                    ));
+            end;
     end;
 
     link := instList;

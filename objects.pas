@@ -2,7 +2,9 @@ unit objects;
 
 interface
 
-uses statement;
+uses
+    symbols,
+    statement;
 
 const
     // I/O
@@ -30,11 +32,12 @@ const
 
     // Miscellaneous
     DEFAULT_CAPACITY = 8;
-    ARRAY_CAPACITY = 5;
+    ARRAY_CAPACITY = 6;
     EMPTY_OPERAND: TOperand = (value: operandError; n: 0);
+    INEQUALITY_OPERAND: TOperand = (value: constantOperand; n: 21000);
 
 type
-    TAddressTarget = (constantAddress, idAddress, lineAddress);
+    // TAddressTarget = (constantAddress, idAddress, lineAddress);
 
     TObject = record
         instruction: integer;
@@ -95,17 +98,6 @@ begin
     objectBuilder.opr := opr;
 end;
 
-// function newOperand(operandType: TPossibleOperands; num: integer; chr: char): TOperand;
-// begin
-//     newOperand.value := operandType;
-//     case operandType of
-//         TPossibleOperands.constantOperand:
-//             newOperand.n := num;
-//         TPossibleOperands.idOperand:
-//             newOperand.c := chr;
-//     end;
-// end;
-
 function compile(stmt: TStatement): TBlock;
 
 var
@@ -134,6 +126,15 @@ begin
                 INST_READ,
                 stmt.reservedWord.inputOpr
             ));
+
+            case stmt.reservedWord.inputOpr.value of
+                idOperand:
+                    if symbols.variablesInitialization[stmt.reservedWord.inputOpr.c] = UNINITIALIZED_VARIABLE then
+                        symbols.variablesInitialization[stmt.reservedWord.inputOpr.c] := INITIALIZED_VARIABLE;
+                else
+                    internalError('inputOpr is not a idOperand.');
+                
+            end;
         end;
 
         // let: (letOpr: TOperand; letAssignment: TAssignment);
@@ -142,14 +143,26 @@ begin
             case stmt.reservedWord.letAssignment.value of
                 TPossibleAssignment.assignmentOperand:
                 begin
-                    arrayAdd(compile.objectArray, objectBuilder(
-                        INST_LOAD,
-                        stmt.reservedWord.letAssignment.o
-                    ));
-                    arrayAdd(compile.objectArray, objectBuilder(
-                        INST_STORE,
-                        stmt.reservedWord.letOpr
-                    ));
+                    // Optimization: If a variable is first initialized with a constant value,
+                    // don't execute INST_LOAD + INST_STORE and instead write the value directly
+                    // on the variable address.
+                    // Note: A constant will always be written in the source code, even if
+                    // it is only used for variable initialization.
+
+                    if (stmt.reservedWord.letAssignment.o.value = constantOperand) 
+                    and (variablesInitialization[stmt.reservedWord.letOpr.c] = UNINITIALIZED_VARIABLE)
+                    then
+                        variablesInitialization[stmt.reservedWord.letOpr.c] := stmt.reservedWord.letAssignment.o.n
+                    else begin
+                        arrayAdd(compile.objectArray, objectBuilder(
+                            INST_LOAD,
+                            stmt.reservedWord.letAssignment.o
+                        ));
+                        arrayAdd(compile.objectArray, objectBuilder(
+                            INST_STORE,
+                            stmt.reservedWord.letOpr
+                        ));    
+                    end;
                 end;
 
                 statement.TPossibleAssignment.assignmentAlgebraExpr:
@@ -239,15 +252,12 @@ begin
                 TBooleanOperator.inequality:
                 begin
                     arrayAdd(compile.objectArray, objectBuilder(
-                        INST_BRANCHNEG,
-                        stmt.reservedWord.thenData.gotoOpr
+                        INST_BRANCHZERO,
+                        INEQUALITY_OPERAND
                     ));
 
-                    arrayAdd(compile.objectArray, objectBuilder(INST_LOAD, secondOperand)); 
-                    arrayAdd(compile.objectArray, objectBuilder(INST_SUBTRACT, firstOperand));
-
                     arrayAdd(compile.objectArray, objectBuilder(
-                        INST_BRANCHNEG,
+                        INST_BRANCH,
                         stmt.reservedWord.thenData.gotoOpr
                     ));
                 end;
@@ -313,6 +323,41 @@ begin
         list.count -= 1;
 end;
 
+function canSkipCurrentStmt(curr: TStatement; next: TStatement): boolean;
+
+var
+    currWord, nextWord: TReservedWord;
+    nextLeftOpr, nextRightOpr: TOperand;
+
+begin
+    canSkipCurrentStmt := false;
+    
+    currWord := curr.reservedWord;
+    nextWord := next.reservedWord;
+
+    if (currWord.value = let) and (nextWord.value = let) then
+        if curr.reservedWord.letOpr.c = nextWord.letOpr.c then
+            case nextWord.letAssignment.value of
+                assignmentOperand:
+                    canSkipCurrentStmt := true;
+
+                assignmentAlgebraExpr:
+                begin
+                    canSkipCurrentStmt := true;
+                    nextLeftOpr := nextWord.letAssignment.expr.leftOperand;
+                    nextRightOpr := nextWord.letAssignment.expr.rightOperand;
+
+                    if (nextLeftOpr.value = idOperand)
+                    and (nextLeftOpr.c = currWord.letOpr.c) then
+                        canSkipCurrentStmt := false;
+
+                    if (nextRightOpr.value = idOperand)
+                    and (nextRightOpr.c = currWord.letOpr.c) then
+                        canSkipCurrentStmt := false;
+                end;
+            end;
+end;
+
 function generateBlocks(var stmtList: TStatementList): TBlockList;
 
 var
@@ -320,8 +365,14 @@ var
 
 begin
     generateBlocks := newList();
-    for i := 0 to stmtList.count - 1 do
+    for i := 0 to stmtList.count - 1 do begin
+        if i < (stmtList.count - 1) then begin
+            if canSkipCurrentStmt(stmtList.start[i], stmtList.start[i + 1]) then
+                continue;
+        end;
+
         append(generateBlocks, compile(stmtList.start[i]));
+    end;
 end;
 
 end.
