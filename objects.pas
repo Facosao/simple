@@ -161,7 +161,9 @@ begin
                         arrayAdd(compile.objectArray, objectBuilder(
                             INST_STORE,
                             stmt.reservedWord.letOpr
-                        ));    
+                        ));
+                        if symbols.variablesInitialization[stmt.reservedWord.letOpr.c] = UNINITIALIZED_VARIABLE then
+                            symbols.variablesInitialization[stmt.reservedWord.letOpr.c] := INITIALIZED_VARIABLE;
                     end;
                 end;
 
@@ -197,10 +199,13 @@ begin
                         INST_STORE,
                         stmt.reservedWord.letOpr
                     ));
+
+                    if symbols.variablesInitialization[stmt.reservedWord.letOpr.c] = UNINITIALIZED_VARIABLE then
+                        symbols.variablesInitialization[stmt.reservedWord.letOpr.c] := INITIALIZED_VARIABLE;
                 end;
 
                 statement.TPossibleAssignment.assignmentError:
-                    writeLn('Internal error: Unexpected assignmentError.');
+                    internalError('Unexpected assignmentError.');
             end;
         end;
 
@@ -361,14 +366,19 @@ end;
 function generateBlocks(var stmtList: TStatementList): TBlockList;
 
 var
-    i: integer;    
+    i: integer;
+    copyStmt: TStatement;    
 
 begin
     generateBlocks := newList();
     for i := 0 to stmtList.count - 1 do begin
         if i < (stmtList.count - 1) then begin
-            if canSkipCurrentStmt(stmtList.start[i], stmtList.start[i + 1]) then
+            if canSkipCurrentStmt(stmtList.start[i], stmtList.start[i + 1]) then begin
+                copyStmt := stmtList.start[i];
+                copyStmt.reservedWord.value := rem;
+                append(generateBlocks, compile(copyStmt));
                 continue;
+            end;
         end;
 
         append(generateBlocks, compile(stmtList.start[i]));
