@@ -7,7 +7,7 @@ Para compilar o projeto, é necessário ter o compilador de Pascal
 
 Para compilar o projeto basta digitar:
 
-    fpc simple.pas
+    fpc src/simple.pas
 
 Este comando irá gerar o executável ```simple```. O compilador espera receber o caminho de um arquivo de texto como parâmetro de execução. Exemplo:
 
