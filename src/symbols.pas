@@ -31,7 +31,6 @@ var
     i: integer;
 
 begin
-    writeLn('Recieved constant: ', n);
     if constantsCount > 0 then
         for i := 0 to constantsCount - 1 do
             if constants[i] = n then
