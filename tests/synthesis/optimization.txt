@@ -1,0 +1,47 @@
+01 rem Verificar otimizacao de codigo
+02 rem input 2 input 3 output 5
+10 input a
+15 input b
+20 let c = a + b
+21 let c = a + b
+22 let c = a + b
+23 let c = a + b
+24 let c = a + b
+25 let c = a + b
+26 let c = a + b
+27 let c = a + b
+28 let c = a + b
+29 let c = a + b
+30 let c = a + b
+31 let c = a + b
+32 let c = a + b
+33 let c = a + b
+34 let c = a + b
+35 let c = a + b
+36 let c = a + b
+37 let c = a + b
+38 let c = a + b
+39 let c = a + b
+40 let c = a + b
+41 let c = a + b
+42 let c = a + b
+43 let c = a + b
+44 let c = a + b
+45 let c = a + b
+46 let c = a + b
+47 let c = a + b
+48 let c = a + b
+49 let c = a + b
+50 let c = a + b
+51 let c = a + b
+52 let c = a + b
+53 let c = a + b
+54 let c = a + b
+55 let c = a + b
+56 let c = a + b
+57 let c = a + b
+58 let c = a + b
+59 let c = a + b
+60 let c = a + b
+65 print c
+70 end

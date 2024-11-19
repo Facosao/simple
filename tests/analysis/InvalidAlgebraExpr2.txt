@@ -1,0 +1,13 @@
+05 rem erro sintatico na linha 35
+10 input n
+15 if n <= 0 goto 55
+20 let y = 0
+25 let k = 0
+30 if k >= n goto 65
+35 let y = y + 2 * k + 1
+40 print y
+45 let k = k + 1
+50 goto 30
+55 let y = -1
+60 print y
+65 end

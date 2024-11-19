@@ -1,7 +1,6 @@
 *.o
 *.ppu
 *.exe
-*.txt
 *.output
 *.output.txt
 out/

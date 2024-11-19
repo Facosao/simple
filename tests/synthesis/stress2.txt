@@ -1,0 +1,13 @@
+01 rem Verificar otimizacao de codigo
+02 rem input 2 input 3 output 5
+03 rem -------------------
+10 input a
+15 input b
+20 let c = a + b
+21 let c = c + d
+22 let c = d + e
+23 let c = e + f
+24 let c = g + h
+65 print c
+70 end
+75 rem -------------------

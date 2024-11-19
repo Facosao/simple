@@ -1,0 +1,11 @@
+01 rem linha 25 operador booleano invalido
+10 input x
+15 if x == 0 goto 45
+20 input n
+24 rem 25 if n == 0 goto 45
+25 if n = 0 goto 45
+30 if n <= x goto 20
+35 let x = n
+40 goto 20
+45 print x
+50 end
