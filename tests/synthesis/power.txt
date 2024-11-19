@@ -1,3 +1,4 @@
+01 rem input 2 5 output 32
 10 input b
 15 input e
 20 if b < 0 goto 65

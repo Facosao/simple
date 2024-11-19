@@ -1,0 +1,10 @@
+01 rem input 5 7 4 output 4
+10 input a
+15 input b
+20 if a <= b goto 30
+25 let a = b
+30 input b
+35 if a <= b goto 45
+40 let a = b
+45 print a
+50 end

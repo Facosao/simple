@@ -1,0 +1,15 @@
+01 rem input 5 output 1 4 9 16 25
+10 input n
+15 if n <= 0 goto 65
+20 let y = 0
+25 let k = 0
+30 if k >= n goto 75
+35 let a = 2 * k
+40 let b = a + 1
+45 let y = y + b
+50 print y
+55 let k = k + 1
+60 goto 30
+65 let y = -1
+70 print y
+75 end

@@ -1,0 +1,10 @@
+01 rem input 1 7 4 3 0 output 1
+10 input a
+15 if a == 0 goto 45
+20 input n
+25 if n == 0 goto 45
+30 if n >= a goto 20
+35 let a = n
+40 goto 20
+45 print a
+50 end
