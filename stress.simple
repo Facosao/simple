@@ -1,5 +1,0 @@
-10 let a = 1
-15 let b = 2
-20 if a != 10 goto 30
-25 print b
-30 end
