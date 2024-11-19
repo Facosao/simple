@@ -31,9 +31,8 @@ begin
         start := 1;
     end;
     
-    for i := 0 to size - 1 do begin
-        leadingZeros[6 - size + (start - 1) + i] := input[start + i]
-    end;
+    for i := 0 to size - 1 do
+        leadingZeros[6 - size + (start - 1) + i] := input[start + i];
 
     if isNegative then
         leadingZeros[1] := '-';
@@ -59,24 +58,10 @@ begin
         buffer := '+0000';
         
         case instructionList.start[i].instruction of
-            linker.INST_VAR:
+            linker.INST_VAR, linker.INST_CONST:
             begin
                 buffer := sysutils.IntToStr(instructionList.start[i].operand);
                 buffer := leadingZeros(buffer);
-            end;
-
-            linker.INST_CONST:
-            begin
-                // Figure out if one can read string[0] to figure out its size
-                writeLn('Writing constant: ', instructionList.start[i].operand);
-                writeLn('buffer = ', buffer);
-                buffer := sysutils.IntToStr(abs(instructionList.start[i].operand));
-                writeLn('buffer = ', buffer);
-                buffer := leadingZeros(buffer);
-                writeLn('buffer = ', buffer);
-                
-                if instructionList.start[i].operand < 0 then
-                    buffer[1] := '-';
             end;
 
             else // Actual valid executable instruction

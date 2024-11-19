@@ -341,10 +341,14 @@ begin
     nextWord := next.reservedWord;
 
     if (currWord.value = let) and (nextWord.value = let) then
-        if curr.reservedWord.letOpr.c = nextWord.letOpr.c then
+        if currWord.letOpr.c = nextWord.letOpr.c then
             case nextWord.letAssignment.value of
                 assignmentOperand:
-                    canSkipCurrentStmt := true;
+                    if (nextWord.letAssignment.o.value = idOperand)
+                    and (nextWord.letAssignment.o.c = currWord.letOpr.c) then
+                        canSkipCurrentStmt := false
+                    else
+                        canSkipCurrentStmt := true;
 
                 assignmentAlgebraExpr:
                 begin

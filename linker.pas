@@ -130,7 +130,7 @@ begin
                         end;
 
                         operandError:
-                            writeLn('Internal error: linker operand error.');
+                            writeLn('Internal error: linker operandError.');
                     end;
                 end;
             end;
