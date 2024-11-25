@@ -367,6 +367,9 @@ begin
         token.DIVISION:
             algebraOperator := division;
 
+        token.MODULO:
+            algebraOperator := modulo;
+
         else
             hadStmtError();
             writeLn('Expected ALGEBRA OPERATOR, got ', token.idToStr(curToken^.id));
